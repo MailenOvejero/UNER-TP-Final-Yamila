@@ -1,4 +1,6 @@
 import { getDbPool } from '../config/db.js';
+// Importación ajustada para encontrar el repositorio en src/data
+import * as salonRepo from '../data/SALON.REPOSITORY.js';
 
 /**
  * Obtiene todos los salones activos con opciones de paginación (Browse).
@@ -6,25 +8,23 @@ import { getDbPool } from '../config/db.js';
  * @returns {Promise<Array>} Lista de objetos de salones.
  */
 export const getAllSalones = async ({ limit, offset, order = 'titulo', asc = true }) => {
-    // Obtener el pool después de la inicialización, garantizando que DB_NAME esté cargado
-    const pool = getDbPool();
-
-    const validOrderColumns = ['titulo', 'capacidad', 'importe']; 
+    // Lógica de negocio/validación para construir la consulta (aquí se valida el orden)
+    const validOrderColumns = ['titulo', 'capacidad', 'importe'];
     const orderByColumn = validOrderColumns.includes(order) ? order : 'titulo';
     const sortDirection = asc ? 'ASC' : 'DESC';
 
     const sql = `
-        SELECT salon_id, titulo, direccion, latitud, longitud, capacidad, importe 
-        FROM salones 
-        WHERE activo = 1 
-        ORDER BY ${orderByColumn} ${sortDirection} 
+        SELECT salon_id, titulo, direccion, latitud, longitud, capacidad, importe
+        FROM salones
+        WHERE activo = 1
+        ORDER BY ${orderByColumn} ${sortDirection}
         LIMIT ? OFFSET ?
-    `; 
-    const params = [limit, offset]; 
+    `;
+    const params = [limit, offset];
 
     try {
-        const [rows] = await pool.query(sql, params); 
-        return rows; 
+        // Llama al repositorio con la consulta y los parámetros
+        return await salonRepo.findAll(sql, params);
     } catch (error) {
         console.error('Error al obtener salones con paginación:', error);
         throw error;
@@ -37,13 +37,9 @@ export const getAllSalones = async ({ limit, offset, order = 'titulo', asc = tru
  * @returns {Promise<object | null>} El objeto salón o null si no se encuentra.
  */
 export const getSalonById = async (salonId) => {
-    const pool = getDbPool();
-    const sql = 'SELECT * FROM salones WHERE salon_id = ? AND activo = 1'; 
-    const params = [salonId];
-
     try {
-        const [rows] = await pool.query(sql, params); 
-        return rows[0] || null;
+        const salon = await salonRepo.findById(salonId);
+        return salon || null;
     } catch (error) {
         console.error(`Error al obtener salón con ID ${salonId}:`, error);
         throw error;
@@ -56,24 +52,9 @@ export const getSalonById = async (salonId) => {
  * @returns {Promise<number>} El ID del salón recién creado.
  */
 export const createSalon = async (salonData) => {
-    const pool = getDbPool();
-    const sql = `
-        INSERT INTO salones 
-        (titulo, direccion, latitud, longitud, capacidad, importe)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `; 
-    const params = [
-        salonData.titulo,
-        salonData.direccion,
-        salonData.latitud || null,
-        salonData.longitud || null, 
-        salonData.capacidad || null, 
-        salonData.importe
-    ];
-
     try {
-        const [result] = await pool.query(sql, params); 
-        return result.insertId; 
+        // Lógica de negocio: solo llamar al repositorio con los datos
+        return await salonRepo.insert(salonData);
     } catch (error) {
         console.error('Error al crear salón:', error);
         throw error;
@@ -87,19 +68,20 @@ export const createSalon = async (salonData) => {
  * @returns {Promise<number>} El número de filas afectadas (0 o 1).
  */
 export const updateSalon = async (salonId, salonData) => {
-    const pool = getDbPool();
+    // Lógica de negocio/preparación: construir la consulta de actualización dinámica
     const updatableColumns = ['titulo', 'direccion', 'latitud', 'longitud', 'capacidad', 'importe', 'activo'];
-    
+
     const updates = {};
     for (const key of updatableColumns) {
-        if (salonData.hasOwnProperty(key)) {
+        // Verifica que la propiedad exista en los datos de entrada
+        if (Object.prototype.hasOwnProperty.call(salonData, key)) {
             updates[key] = salonData[key];
         }
     }
-    
+
     const keys = Object.keys(updates);
     if (keys.length === 0) {
-        return 0;
+        return 0; // No hay nada que actualizar
     }
 
     const setClauses = keys.map(key => `${key} = ?`).join(', ');
@@ -108,12 +90,12 @@ export const updateSalon = async (salonId, salonData) => {
         SET ${setClauses}
         WHERE salon_id = ?
     `;
-    
+
     const params = [...Object.values(updates), salonId];
-    
+
     try {
-        const [result] = await pool.query(sql, params);
-        return result.affectedRows; 
+        // Llama al repositorio con la consulta dinámica y los parámetros
+        return await salonRepo.update(sql, params);
     } catch (error) {
         console.error(`Error al actualizar salón con ID ${salonId}:`, error);
         throw error;
@@ -126,17 +108,9 @@ export const updateSalon = async (salonId, salonData) => {
  * @returns {Promise<number>} El número de filas afectadas (0 o 1).
  */
 export const deleteSalon = async (salonId) => {
-    const pool = getDbPool();
-    const sql = `
-        UPDATE salones
-        SET activo = 0
-        WHERE salon_id = ? AND activo = 1 
-    `; 
-    const params = [salonId];
-    
     try {
-        const [result] = await pool.query(sql, params);
-        return result.affectedRows; 
+        // Lógica de negocio: solo llamar al repositorio
+        return await salonRepo.deactivate(salonId);
     } catch (error) {
         console.error(`Error al desactivar salón con ID ${salonId}:`, error);
         throw error;
