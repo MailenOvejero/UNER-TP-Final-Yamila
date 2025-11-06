@@ -1,5 +1,5 @@
 import * as reservaService from '../services/reserva.service.js';
-import { getEstadisticasReservas } from '../services/reserva.service.js';
+import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
@@ -135,7 +135,7 @@ export const deleteReserva = async (req, res, next) => {
 //CREO EL CONTROLADOR 
 export const estadisticasReservas = async (req, res, next) => {
   try {
-    const data = await getEstadisticasReservas();
+    const data = await obtenerEstadisticas();
     res.status(200).json(data);
   } catch (error) {
     next(error);

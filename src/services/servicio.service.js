@@ -1,40 +1,33 @@
-import { getDbPool } from '../config/db.js';
+// swc/service/servicio.service.js
+import {
+  getAllServicios,
+  getServicioById,
+  createServicio,
+  updateServicio,
+  deleteServicio
+} from '../data/servicio.data.js';
 
-export const getAllServicios = async () => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM servicios WHERE activo = 1');
-  return rows;
+// Listar todos los servicios activos
+export const listarServicios = async () => {
+  return await getAllServicios();
 };
 
-export const getServicioById = async (id) => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM servicios WHERE servicio_id = ? AND activo = 1', [id]);
-  return rows[0];
+// Obtener un servicio por ID
+export const obtenerServicio = async (id) => {
+  return await getServicioById(id);
 };
 
-export const createServicio = async ({ descripcion, importe }) => {
-  const pool = getDbPool();
-  const [result] = await pool.query(
-    'INSERT INTO servicios (descripcion, importe) VALUES (?, ?)',
-    [descripcion, importe]
-  );
-  return result.insertId;
+// Crear un nuevo servicio
+export const crearServicio = async (datos) => {
+  return await createServicio(datos);
 };
 
-export const updateServicio = async (id, { descripcion, importe, activo }) => {
-  const pool = getDbPool();
-  const [result] = await pool.query(
-    'UPDATE servicios SET descripcion = ?, importe = ?, activo = ? WHERE servicio_id = ?',
-    [descripcion, importe, activo, id]
-  );
-  return result.affectedRows;
+// Actualizar un servicio existente
+export const actualizarServicio = async (id, datos) => {
+  return await updateServicio(id, datos);
 };
 
-export const deleteServicio = async (id) => {
-  const pool = getDbPool();
-  const [result] = await pool.query(
-    'UPDATE servicios SET activo = 0 WHERE servicio_id = ?',
-    [id]
-  );
-  return result.affectedRows;
+// Eliminar lógicamente un servicio
+export const eliminarServicio = async (id) => {
+  return await deleteServicio(id);
 };

@@ -5,7 +5,6 @@ import { ROLES } from '../config/roles.js';
 import { createSalonValidation, updateSalonValidation } from '../middlewares/salon.validation.js';
 
 const router = Router();
-
 const readRoles = [ROLES.CLIENTE, ROLES.EMPLEADO, ROLES.ADMIN];
 const writeRoles = [ROLES.EMPLEADO, ROLES.ADMIN];
 

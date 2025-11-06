@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { getUserByUsername, verifyPassword } from '../services/usuario.service.js';
+import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js';
 import { ROLES } from '../config/roles.js';
 
 /**
@@ -36,13 +36,13 @@ export const login = async (req, res, next) => {
 
     try {
         //  Buscar usuario
-        const user = await getUserByUsername(nombre_usuario);
+        const user = await buscarUsuarioPorEmail(nombre_usuario);
 
         console.log('Usuario encontrado:', user);
 
 
         //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && verifyPassword(password, user.contrasenia);
+        const isPasswordValid = user && validarPassword(password, user.contrasenia);
 
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {

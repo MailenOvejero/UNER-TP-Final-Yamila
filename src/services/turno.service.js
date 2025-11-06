@@ -1,34 +1,33 @@
-import { getDbPool } from '../config/db.js';
+// swc/service/turno.service.js
+import {
+  getAllTurnos,
+  getTurnoById,
+  createTurno,
+  updateTurno,
+  deleteTurno
+} from '../data/turno.data.js';
 
-export const getAllTurnos = async () => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM turnos WHERE activo = 1 ORDER BY orden ASC');
-  return rows;
+// Listar todos los turnos activos
+export const listarTurnos = async () => {
+  return await getAllTurnos();
 };
 
-export const getTurnoById = async (id) => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM turnos WHERE turno_id = ? AND activo = 1', [id]);
-  return rows[0] || null;
+// Obtener un turno por ID
+export const obtenerTurno = async (id) => {
+  return await getTurnoById(id);
 };
 
-export const createTurno = async (data) => {
-  const pool = getDbPool();
-  const sql = 'INSERT INTO turnos (orden, hora_desde, hora_hasta) VALUES (?, ?, ?)';
-  const [result] = await pool.query(sql, [data.orden, data.hora_desde, data.hora_hasta]);
-  return result.insertId;
+// Crear un nuevo turno
+export const crearTurno = async (datos) => {
+  return await createTurno(datos);
 };
 
-export const updateTurno = async (id, data) => {
-  const pool = getDbPool();
-  const sql = 'UPDATE turnos SET orden = ?, hora_desde = ?, hora_hasta = ?, activo = ? WHERE turno_id = ?';
-  const [result] = await pool.query(sql, [data.orden, data.hora_desde, data.hora_hasta, data.activo ?? 1, id]);
-  return result.affectedRows;
+// Actualizar un turno existente
+export const actualizarTurno = async (id, datos) => {
+  return await updateTurno(id, datos);
 };
 
-export const deleteTurno = async (id) => {
-  const pool = getDbPool();
-  const sql = 'UPDATE turnos SET activo = 0 WHERE turno_id = ?';
-  const [result] = await pool.query(sql, [id]);
-  return result.affectedRows;
+// Eliminar lógicamente un turno
+export const eliminarTurno = async (id) => {
+  return await deleteTurno(id);
 };

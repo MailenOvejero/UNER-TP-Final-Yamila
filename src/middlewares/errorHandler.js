@@ -1,6 +1,7 @@
 
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
-import { obtenerEmailsAdministradores } from '../services/usuario.service.js';
+import { obtenerEmailsAdmins } from '../services/usuario.service.js';
+
 
 export const errorHandler = async (err, req, res, next) => {
 
@@ -30,7 +31,7 @@ export const errorHandler = async (err, req, res, next) => {
 
     //  Enviar notificación por mail a administradores activos
     try {
-        const destinatarios = await obtenerEmailsAdministradores();
+        const destinatarios = await obtenerEmailsAdmins();
         const asunto = `Error ${statusCode} en ${req.method} ${req.originalUrl}`;
         const mensaje = `
             <h3>Se ha producido un error en el sistema</h3>
