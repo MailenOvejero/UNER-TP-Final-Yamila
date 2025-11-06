@@ -3,7 +3,7 @@ import chalk from 'chalk';    // colores
 import dotenv from 'dotenv';  // variable de entorno
 import cors from 'cors';      // dominios multiples y seguros
 import compression from 'compression';  // compresion de datos
-import morgan from 'morgan';  // logging HTTP
+import { setupLogging } from './middlewares/logging.middleware.js';
 import helmet from 'helmet';  // seguridad
 import { setupSwagger } from './swagger.js';
 
@@ -47,7 +47,7 @@ app.use(helmet());
 // ************************************************************
 
 // - LOGGING
-app.use(morgan('dev')); 
+const morganMiddleware = setupLogging(app.get('env'));
 // - RENDIMIENTO
 app.use(compression()); 
 // - SEGURIDAD DE DOMINIOS
