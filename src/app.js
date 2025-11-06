@@ -96,6 +96,9 @@ app.use((req, res, next) => {
   verifyToken(req, res, next); // todas las demás rutas sí requieren token
 });
 
+
+
+
 // RUTA CENTRAL DE LA API
 app.use('/api', apiRouter);
 

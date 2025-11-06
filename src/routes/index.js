@@ -2,6 +2,11 @@ import { Router } from 'express';
 import authRouter from './auth.routes.js'; // Rutas de Login/Auth
 import salonRouter from './salon.routes.js'; // Importar el Router de Salones
 import reservaRouter from './RESERVA.ROUTES.js';
+import usuarioRoutes from './usuario.routes.js';
+const apiRouter = Router();
+
+apiRouter.use('/usuarios', usuarioRoutes);
+
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // PARA LA ENTREGA FINAL Y PODER PROBAR EN POSTAMAN, DESCOMENTO ESTAS DOS LINESS!!! 
@@ -9,7 +14,7 @@ import reservaRouter from './RESERVA.ROUTES.js';
 import servicioRouter from './SERVICIO.ROUTES.js';
 import turnoRouter from './TURNO.ROUTES.js';
 
-const apiRouter = Router();
+
 
 // ===============================================
 // RUTAS MÓDULO AUTH
