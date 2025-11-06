@@ -1,26 +1,20 @@
 import { getDbPool } from '../config/db.js';
+// Importación ajustada para encontrar el repositorio en src/data
+import * as reservaRepo from '../data/RESERVA.REPOSITORY.js';
 
 export const getAll = async () => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM reservas WHERE activo = 1');
-  return rows;
+  return reservaRepo.findAll();
 };
 
 export const getById = async (id) => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('SELECT * FROM reservas WHERE reserva_id = ? AND activo = 1', [id]);
-  return rows[0];
+  return reservaRepo.findById(id);
 };
 
 export const getByUsuario = async (usuario_id) => {
-  const pool = getDbPool();
-  const [rows] = await pool.query(
-    'SELECT * FROM reservas WHERE usuario_id = ? AND activo = 1',
-    [usuario_id]
-  );
-  return rows;
+  return reservaRepo.findByUsuario(usuario_id);
 };
 
+// Lógica de Negocio: Transacción para la creación de una reserva
 export const create = async (data) => {
   const {
     fecha_reserva, salon_id, usuario_id, turno_id,
@@ -29,33 +23,28 @@ export const create = async (data) => {
 
   const pool = getDbPool();
   const conn = await pool.getConnection();
+
   try {
     await conn.beginTransaction();
 
-    const [result] = await conn.query(
-      `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, importe_total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, 0]
-    );
+    // 1. Insertar la reserva principal
+    const reserva_id = await reservaRepo.insertReserva(conn, {
+        fecha_reserva, salon_id, usuario_id, turno_id,
+        foto_cumpleaniero, tematica, importe_salon
+    });
 
-    const reserva_id = result.insertId;
     let totalServicios = 0;
 
+    // 2. Insertar los servicios asociados y calcular el total
     for (const servicio of servicios) {
-      await conn.query(
-        `INSERT INTO reservas_servicios (reserva_id, servicio_id, importe)
-         VALUES (?, ?, ?)`,
-        [reserva_id, servicio.servicio_id, servicio.importe]
-      );
+      await reservaRepo.insertReservaServicio(conn, reserva_id, servicio);
       totalServicios += servicio.importe;
     }
 
     const importe_total = importe_salon + totalServicios;
 
-    await conn.query(
-      `UPDATE reservas SET importe_total = ? WHERE reserva_id = ?`,
-      [importe_total, reserva_id]
-    );
+    // 3. Actualizar el importe total de la reserva
+    await reservaRepo.updateReservaTotal(conn, reserva_id, importe_total);
 
     await conn.commit();
     return { reserva_id, importe_total };
@@ -68,38 +57,18 @@ export const create = async (data) => {
 };
 
 export const update = async (id, data) => {
-  const pool = getDbPool();
-  await pool.query('UPDATE reservas SET ? WHERE reserva_id = ?', [data, id]);
+  await reservaRepo.updateReserva(id, data);
   return { message: 'Reserva actualizada' };
 };
 
 export const softDelete = async (id) => {
-  const pool = getDbPool();
-  await pool.query('UPDATE reservas SET activo = 0 WHERE reserva_id = ?', [id]);
+  await reservaRepo.deactivateReserva(id);
 };
 
 export const getEstadisticasReservas = async () => {
-  const pool = getDbPool();
-  const [rows] = await pool.query('CALL reservas_por_mes()');
-  return rows[0]; 
+  return reservaRepo.findEstadisticasReservas();
 };
 
 export const getReservasParaCSV = async () => {
-  const pool = getDbPool();
-  const [rows] = await pool.query(`
-    SELECT 
-      r.reserva_id,
-      CONCAT(u.nombre, ' ', u.apellido) AS cliente,
-      s.titulo AS salon,
-      t.hora_desde AS turno,
-      r.fecha_reserva,
-      r.tematica,
-      r.importe_total
-    FROM reservas r
-    JOIN usuarios u ON r.usuario_id = u.usuario_id
-    JOIN salones s ON r.salon_id = s.salon_id
-    JOIN turnos t ON r.turno_id = t.turno_id
-    WHERE r.activo = 1
-  `);
-  return rows;
+  return reservaRepo.findReservasParaCSV();
 };
