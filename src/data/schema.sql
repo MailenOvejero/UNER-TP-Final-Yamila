@@ -311,3 +311,15 @@ VALUES
 (3, 4, 200000.00);
 
 COMMIT;
+
+
+
+UPDATE usuarios SET password = '$2b$10$uZKZzU7wKxZzU7wKxZzU7uZKZzU7wKxZzU7wKxZzU7wKxZzU7wKx' WHERE nombre_usuario = 'alblop@correo.com';
+UPDATE usuarios SET password = '$2b$10$A1B2C3D4E5F6G7H8I9J0Ka1B2C3D4E5F6G7H8I9J0Ka1B2C3D4E5' WHERE nombre_usuario = 'pamgom@correo.com';
+UPDATE usuarios SET password = '$2b$10$XxYyZzAaBbCcDdEeFfGgXxYyZzAaBbCcDdEeFfGgXxYyZzAaBbCc' WHERE nombre_usuario = 'estcir@correo.com';
+UPDATE usuarios SET password = '$2b$10$LmNoPqRsTuVwXyZaBcDeLmNoPqRsTuVwXyZaBcDeLmNoPqRsTuVw' WHERE nombre_usuario = 'oscram@correo.com';
+UPDATE usuarios SET password = '$2b$10$QqWwEeRrTtYyUuIiOoPpQqWwEeRrTtYyUuIiOoPpQqWwEeRrTtYy' WHERE nombre_usuario = 'clajua@correo.com';
+UPDATE usuarios SET password = '$2b$10$ZzXxCcVvBbNnMmLlKkJjZzXxCcVvBbNnMmLlKkJjZzXxCcVvBbNn' WHERE nombre_usuario = 'wilcor@correo.com';
+UPDATE usuarios SET password = '$2b$10$AaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFf' WHERE nombre_usuario = 'anaflo@correo.com';
+
+contraseñas bcrypt

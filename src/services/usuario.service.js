@@ -15,10 +15,12 @@ export const buscarUsuarioPorEmail = async (username) => {
   return await getUserByUsername(username);
 };
 
-// Verificación de contraseña
-export const validarPassword = (plain, hashed) => {
-  return verifyPassword(plain, hashed);
+
+// Verificación de contraseña (pasamosel ID para migrar)
+export const validarPassword = async (plain, hashed, userId) => {
+  return await verifyPassword(plain, hashed, userId);
 };
+
 
 // Listar todos los usuarios activos
 export const listarUsuarios = async () => {

@@ -14,9 +14,9 @@ if (process.env.NODE_ENV === "development") {
       pass: testAccount.pass,
     },
   });
-  console.log("🧪 Modo desarrollo: usando cuenta ficticia Ethereal");
+  console.log("Modo desarrollo: usando cuenta ficticia Ethereal");
 } else {
-  // 🔹 Modo producción (usa Gmail)
+
   transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {

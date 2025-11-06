@@ -2,8 +2,9 @@ import jwt from 'jsonwebtoken';
 import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js';
 import { ROLES } from '../config/roles.js';
 
-/**
-  Genera un token JWT para el usuario autenticado. Utiliza el ID y el rol para el payload.
+/*
+ * Genera un token JWT para el usuario autenticado.
+ * Utiliza el ID y el rol para el payload.
  */
 const generateToken = (user) => {
     const payload = {
@@ -11,28 +12,28 @@ const generateToken = (user) => {
         role: user.tipo_usuario
     };
 
-    // Genera el token usando la clave secreta y la expiracioon de .env
+    // Genera el token usando la clave secreta y la expiración de .env
     return jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN || '1h' // Asume JWT_EXPIRES_IN en .env
     });
 };
-/*Controlador para la ruta POST /api/auth/login
+
+/**
+ * Controlador para la ruta POST /api/auth/login
  */
 export const login = async (req, res, next) => {
-
 
     // **********************************************************
     //  COMPROBACIÓN INICIAL (400 Bad Request)
     // **********************************************************
-    const { nombre_usuario, password } = req.body;
+    const { nombre_usuario, password, contrasenia } = req.body;
+    const passwordIngresada = password || contrasenia;
 
-    if (!nombre_usuario || !password) {
-    const error = new Error('Faltan credenciales (usuario o contraseña).');
-    error.status = 400;
-    return next(error);
-}
-
-
+    if (!nombre_usuario || !passwordIngresada) {
+        const error = new Error('Faltan credenciales (usuario o contraseña).');
+        error.status = 400;
+        return next(error);
+    }
 
     try {
         //  Buscar usuario
@@ -40,9 +41,8 @@ export const login = async (req, res, next) => {
 
         console.log('Usuario encontrado:', user);
 
-
         //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && validarPassword(password, user.contrasenia);
+        const isPasswordValid = user && await validarPassword(passwordIngresada, user.password, user.usuario_id);
 
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {
@@ -70,7 +70,6 @@ export const login = async (req, res, next) => {
                 nombre_usuario: user.nombre_usuario,
                 role: roleName
             }
-
         });
 
     } catch (error) {

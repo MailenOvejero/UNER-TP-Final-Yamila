@@ -7,7 +7,7 @@ import { generarPDFReserva } from '../utils/pdfGenerator.js';
 
 export const getReservas = async (req, res, next) => {
   try {
-    const reservas = await reservaService.getAll();
+    const reservas = await reservaService.listarReservas();
     res.status(200).json(reservas);
   } catch (error) {
     next(error);
@@ -16,7 +16,7 @@ export const getReservas = async (req, res, next) => {
 
 export const getReservaById = async (req, res, next) => {
   try {
-    const reserva = await reservaService.getById(req.params.id);
+    const reserva = await reservaService.obtenerReserva(req.params.id);
     if (!reserva) throw new Error('Reserva no encontrada');
     res.status(200).json(reserva);
   } catch (error) {
@@ -27,7 +27,7 @@ export const getReservaById = async (req, res, next) => {
 export const getReservasDelCliente = async (req, res, next) => {
   try {
     const usuario_id = req.user.id;
-    const reservas = await reservaService.getByUsuario(usuario_id);
+    const reservas = await reservaService.obtenerReservasDelUsuario(usuario_id);
     res.status(200).json(reservas);
   } catch (error) {
     next(error);
@@ -36,7 +36,8 @@ export const getReservasDelCliente = async (req, res, next) => {
 
 export const createReserva = async (req, res, next) => {
   try {
-    const nuevaReserva = await reservaService.create(req.body);
+    const nuevaReserva = await reservaService.crearReserva(req.body);
+
     const { reserva_id } = nuevaReserva;
 
     const pool = getDbPool();
@@ -116,7 +117,7 @@ export const createReserva = async (req, res, next) => {
 
 export const updateReserva = async (req, res, next) => {
   try {
-    const actualizada = await reservaService.update(req.params.id, req.body);
+    const actualizada = await reservaService.actualizarReserva(req.params.id, req.body);
     res.status(200).json(actualizada);
   } catch (error) {
     next(error);
@@ -125,7 +126,7 @@ export const updateReserva = async (req, res, next) => {
 
 export const deleteReserva = async (req, res, next) => {
   try {
-    await reservaService.softDelete(req.params.id);
+    await reservaService.eliminarReserva(req.params.id);
     res.status(200).json({ message: 'Reserva desactivada' });
   } catch (error) {
     next(error);
@@ -145,7 +146,7 @@ export const estadisticasReservas = async (req, res, next) => {
 //creo endpoint para exportar CSV 
 export const generarReporteCSV = async (req, res, next) => {
   try {
-    const reservas = await reservaService.getReservasParaCSV(); // devuelve reservas con datos completos
+    const reservas = await reservaService.obtenerReservasParaCSV(); // devuelve reservas con datos completos
     const path = './docs/reservas.csv';
 
     generarCSVReservas(reservas, path);
@@ -160,7 +161,7 @@ export const generarReporteCSV = async (req, res, next) => {
 export const generarReportePDF = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;
-    const reserva = await reservaService.getById(reserva_id);
+    const reserva = await reservaService.obtenerReserva(reserva_id);
 
     if (!reserva) {
       return res.status(404).json({ message: 'Reserva no encontrada' });
@@ -197,7 +198,7 @@ export const generarReportePDF = async (req, res, next) => {
     const reservaCompleta = {
       cliente: cliente.cliente,
       salon: salon.titulo,
-      turno: `${turno.hora_desde} a ${turno.hora_hasta}`,
+      turno: `${turno.hora_desde} a ${turno.hasta}`,
       fecha_reserva: reserva.fecha_reserva,
       tematica: reserva.tematica,
       importe_total: reserva.importe_total,
