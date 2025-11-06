@@ -1,5 +1,5 @@
-import * as reservaService from '../services/RESERVA.SERVICE.js';
-import { getEstadisticasReservas } from '../services/RESERVA.SERVICE.js';
+import * as reservaService from '../services/reserva.service.js';
+import { getEstadisticasReservas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
