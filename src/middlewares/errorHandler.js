@@ -1,8 +1,8 @@
-/**
- * Middleware de manejo de errores (500), se distingue por tener 4 argumentos.
- * Debe colocarse el último de todos los middlewares, después de las rutas y del 404.
- */
-export const errorHandler = (err, req, res, next) => {
+
+import { enviarNotificacionReserva } from '../utils/email.helper.js';
+import { obtenerEmailsAdministradores } from '../services/usuario.service.js';
+
+export const errorHandler = async (err, req, res, next) => {
 
     //  Evita que si se enviaron cabeceras no se envien denuevo crasheando el server
     if (res.headersSent) {
@@ -28,10 +28,32 @@ export const errorHandler = (err, req, res, next) => {
         };      
     }
 
-    //  Envía la respuesta con el estado HTTP y los detalles (solo si no estamos en producción)
+    //  Enviar notificación por mail a administradores activos
+    try {
+        const destinatarios = await obtenerEmailsAdministradores();
+        const asunto = `Error ${statusCode} en ${req.method} ${req.originalUrl}`;
+        const mensaje = `
+            <h3>Se ha producido un error en el sistema</h3>
+            <ul>
+                <li><strong>Ruta:</strong> ${req.originalUrl}</li>
+                <li><strong>Método:</strong> ${req.method}</li>
+                <li><strong>Usuario:</strong> ${req.user?.nombre_usuario || 'No autenticado'}</li>
+                <li><strong>Mensaje:</strong> ${err.message}</li>
+                <li><strong>Fecha:</strong> ${new Date().toLocaleString()}</li>
+            </ul>
+            ${env !== 'production' ? `<pre>${err.stack}</pre>` : ''}
+        `;
+        for (const email of destinatarios) {
+            await enviarNotificacionReserva({ destinatario: email, asunto, mensaje });
+        }
+    } catch (mailError) {
+        console.error('Error al enviar notificación por mail:', mailError.message);
+    }
+
+
     res.status(statusCode).json({
         status:'error',
         message: err.message || 'Error Interno del Servidor',
-        ...errorDetails // Usar spread operator para incluir solo las propiedades si existen
+        ...errorDetails 
     });
-}
+};

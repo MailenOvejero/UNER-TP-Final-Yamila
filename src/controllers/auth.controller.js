@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { getUserByUsername, verifyPassword } from '../services/user.service.js';
+import { getUserByUsername, verifyPassword } from '../services/usuario.service.js';
 import { ROLES } from '../config/roles.js';
 
 /**
