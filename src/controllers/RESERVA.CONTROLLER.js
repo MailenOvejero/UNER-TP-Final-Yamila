@@ -79,6 +79,29 @@ export const createReserva = async (req, res, next) => {
       mensaje,
     });
 
+    // ---- Nuevo: enviar correo a todos los administradores reales ----
+    try {
+      const [admins] = await pool.query(`
+        SELECT nombre_usuario AS email FROM usuarios WHERE tipo_usuario = 1 AND activo = 1
+      `);
+
+      for (const admin of admins) {
+        try {
+          await enviarNotificacionReserva({
+            destinatario: admin.email,
+            asunto: 'Nueva reserva creada',
+            mensaje: `Se ha creado una nueva reserva (ID ${reserva_id}) para el cliente ${reserva.nombre} ${reserva.apellido}.<br>Fecha: ${reserva.fecha_reserva}<br>Salón: ${reserva.salon}<br>Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>Importe total: $${reserva.importe_total}`
+          });
+          console.log(`[NOTIFICACIÓN] Correo enviado a ${admin.email}`);
+        } catch (mailErr) {
+          console.error(`[NOTIFICACIÓN] Error enviando correo a ${admin.email}:`, mailErr.message);
+        }
+      }
+    } catch (adminQueryErr) {
+      console.error('[NOTIFICACIÓN] Error obteniendo correos de administradores:', adminQueryErr.message);
+    }
+    // ------------------------------------------------
+
     // notificación automatica simulada
     const clienteId = req.user.id;
     console.log(`[NOTIFICACIÓN] Reserva confirmada para el cliente ID ${clienteId}`);
