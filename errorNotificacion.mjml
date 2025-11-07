@@ -1,45 +1,46 @@
 <mjml>
-  <mj-body background-color="#fdf2f2">
-    <mj-section background-color="#ef4444" padding="20px 0">
-      <mj-column>
-        <mj-text font-size="24px" color="#ffffff" font-family="Arial, sans-serif" align="center" font-weight="bold">
-          🚨 Alerta de Error en el Sistema 🚨
-        </mj-text>
-      </mj-column>
-    </mj-section>
+  <mj-body background-color="#f0f0f0">
     <mj-section background-color="#ffffff" padding="20px">
       <mj-column>
-        <mj-text font-size="18px" color="#b91c1c">
-          Se ha producido un error <%= statusCode %> en la aplicación.
+        <mj-text font-size="24px" color="#d32f2f" font-weight="bold" align="center">
+          🚨 Alerta de Error en el Servidor
         </mj-text>
-        <mj-text font-size="16px" color="#333">
-          A continuación se detallan los datos del incidente:
+        <mj-divider border-color="#d32f2f" border-width="2px"></mj-divider>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="0 20px 20px 20px">
+      <mj-column>
+        <mj-text font-size="16px" line-height="1.5">
+          Se ha detectado un error crítico en la aplicación. A continuación se detallan los datos del incidente:
         </mj-text>
+
         <mj-table>
-          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
-            <td style="padding:10px 5px;"><strong>Ruta:</strong></td>
-            <td style="padding:10px 5px;"><%= metodo %> <%= ruta %></td>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+            <td style="padding: 5px; font-weight: bold;">Código de Estado</td>
+            <td style="padding: 5px;"><%= statusCode %></td>
           </tr>
-          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
-            <td style="padding:10px 5px;"><strong>Usuario:</strong></td>
-            <td style="padding:10px 5px;"><%= usuario %></td>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+            <td style="padding: 5px; font-weight: bold;">Ruta</td>
+            <td style="padding: 5px;"><%= metodo %> <%= ruta %></td>
           </tr>
-          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
-            <td style="padding:10px 5px;"><strong>Fecha:</strong></td>
-            <td style="padding:10px 5px;"><%= fecha %></td>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+            <td style="padding: 5px; font-weight: bold;">Fecha</td>
+            <td style="padding: 5px;"><%= fecha %></td>
           </tr>
-          <tr style="text-align:left;">
-            <td style="padding:10px 5px;"><strong>Mensaje:</strong></td>
-            <td style="padding:10px 5px;"><%= mensaje %></td>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+            <td style="padding: 5px; font-weight: bold;">Usuario</td>
+            <td style="padding: 5px;"><%= usuario %></td>
+          </tr>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;padding:15px 0;">
+            <td style="padding: 5px; font-weight: bold;">Mensaje de Error</td>
+            <td style="padding: 5px;"><%= mensaje %></td>
           </tr>
         </mj-table>
+
         <% if (stack) { %>
-        <mj-text font-size="14px" color="#555">
-          <strong>Stack Trace (solo en desarrollo):</strong>
-        </mj-text>
-        <mj-text font-size="12px" color="#333" background-color="#f8f8f8" padding="10px" border-radius="4px">
-          <pre style="white-space: pre-wrap; word-wrap: break-word;"><%= stack %></pre>
-        </mj-text>
+          <mj-text font-size="14px" color="#555555" padding-top="20px"><strong>Stack Trace:</strong></mj-text>
+          <mj-text font-size="12px" line-height="1.4" background-color="#f5f5f5" padding="10px" border-radius="4px"><pre><code><%= stack %></code></pre></mj-text>
         <% } %>
       </mj-column>
     </mj-section>

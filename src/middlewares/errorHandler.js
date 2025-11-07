@@ -1,6 +1,6 @@
 
-import { obtenerEmailsAdmins } from '../services/usuario.service.js';
-import { sendEmailWithTemplate } from '../services/email.service.js';
+import { getAdminEmails } from '../services/usuario.service.js';
+import { sendEmailWithTemplate } from '../../email.service.js';
 
 
 export const errorHandler = async (err, req, res, next) => {
@@ -32,7 +32,7 @@ export const errorHandler = async (err, req, res, next) => {
     //  Enviar notificación por mail a administradores solo si es un error del servidor (5xx)
     if (statusCode >= 500) {
         try {
-            const destinatarios = await obtenerEmailsAdmins();
+            const destinatarios = await getAdminEmails();
             const asunto = `Alerta de Error ${statusCode} en ${req.method} ${req.originalUrl}`;
     
             // Objeto de datos para la plantilla

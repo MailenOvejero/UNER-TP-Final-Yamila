@@ -2,52 +2,53 @@
 import {
   getUserByUsername,
   verifyPassword,
-  getAllUsuarios,
-  getUsuarioById,
-  createUsuario,
-  updateUsuario,
-  softDeleteUsuario,
-  obtenerEmailsAdministradores
+  getAllUsers,
+  getUserById,
+  createUser as createUserData,
+  updateUser as updateUserData,
+  softDeleteUser as softDeleteUserData,
+  getAdminEmails as getAdminEmailsData
 } from '../data/usuario.data.js';
 
 // Autenticación: buscar usuario por email
-export const buscarUsuarioPorEmail = async (username) => {
+export const findUserByUsername = async (username) => {
   return await getUserByUsername(username);
 };
 
 
 // Verificación de contraseña (pasamosel ID para migrar)
-export const validarPassword = async (plain, hashed, userId) => {
+export const validatePassword = async (plain, hashed, userId) => {
   return await verifyPassword(plain, hashed, userId);
 };
 
 
 // Listar todos los usuarios activos
-export const listarUsuarios = async () => {
-  return await getAllUsuarios();
+export const listUsers = async () => {
+  return await getAllUsers();
 };
 
 // Obtener usuario por ID
-export const obtenerUsuario = async (id) => {
-  return await getUsuarioById(id);
+export const findUserById = async (id) => {
+  return await getUserById(id);
 };
 
 // Crear nuevo usuario
-export const crearUsuario = async (datos) => {
-  return await createUsuario(datos);
+export const createUser = async (data) => {
+  // Ahora llamamos a la función renombrada, evitando la recursión infinita
+  return await createUserData(data);
 };
 
 // Actualizar usuario
-export const actualizarUsuario = async (id, datos) => {
-  return await updateUsuario(id, datos);
+export const updateUser = async (id, data) => {
+  return await updateUserData(id, data);
 };
 
 // Eliminar usuario (soft delete)
-export const eliminarUsuario = async (id) => {
-  return await softDeleteUsuario(id);
+export const deleteUser = async (id) => {
+  return await softDeleteUserData(id);
 };
 
 // Obtener emails de administradores activos
-export const obtenerEmailsAdmins = async () => {
-  return await obtenerEmailsAdministradores();
+export const getAdminEmails = async () => {
+  return await getAdminEmailsData();
 };

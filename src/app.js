@@ -85,10 +85,11 @@ app.get("/", (req, res) => {
 // CUALQUIER RUTA DEFINIDA DESPUÉS DE ESTA LÍNEA, REQUERIRÁ UN TOKEN VÁLIDO.
 // Middleware JWT: protege todo excepto el login y Swagger
 app.use((req, res, next) => {
-  // La ruta de login ya no necesita una excepción aquí porque se define antes de este middleware en el enrutador principal.
   const isSwagger = req.originalUrl.includes('/docs');
+  const isLogin = req.originalUrl === '/api/auth/login';
   
-  if (isSwagger) {
+  // Permite el paso si es una ruta de Swagger o la ruta de login.
+  if (isSwagger || isLogin) {
     return next(); // deja pasar swagger sin verificar token
   }
 
@@ -145,3 +146,6 @@ async function startServer() {
         console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
         process.exit(1);
     }
+  }
+
+startServer();

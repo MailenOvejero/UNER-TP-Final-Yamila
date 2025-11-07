@@ -1,7 +1,7 @@
 import * as reservaService from '../services/reserva.service.js';
 import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
-import { sendEmailWithTemplate } from '../services/email.service.js';
+import { sendEmailWithTemplate } from '../../email.service.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 import { apicacheInstance } from '../config/cache.js';

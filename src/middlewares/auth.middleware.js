@@ -58,14 +58,14 @@ export const authorize = (allowedRoles) => {
         const userRole = req.user.role;
 
         // Comprobar si el rol del usuario está incluido en la lista de roles permitidos
-        if (allowedRoles.includes(userRole)) {
-            // El rol es válido, continuar
-            next();
-        } else {
+        if (!allowedRoles.includes(userRole)) {
             // El rol no tiene permiso para esta ruta
             const error = new Error('Acceso prohibido. Rol insuficiente para realizar esta acción.');
             error.status = 403; // Forbidden
             return next(error);
         }
+
+        // El rol es válido, continuar
+        next();
     };
 };

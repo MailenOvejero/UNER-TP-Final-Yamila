@@ -1,0 +1,29 @@
+meta {
+  name: crear user
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://127.0.0.1:3000/api/usuarios
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwicm9sZSI6MSwiaWF0IjoxNzYyNTMwNTI0LCJleHAiOjE3NjI1MzQxMjR9.bJoGplJhGXzaNjHxsEafDRnmaoniKUyqYUKHaAPnY5E
+}
+
+body:json {
+  {
+    "nombre": "Usuario",
+    "apellido": "DePrueba",
+    "nombre_usuario": "econtegarcia@gmail.com",
+    "contrasenia": "12345",
+    "tipo_usuario": 3
+  }
+}

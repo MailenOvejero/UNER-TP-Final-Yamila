@@ -1,38 +1,14 @@
 import { Router } from 'express';
-import authRouter from './auth.routes.js'; // Rutas de Login/Auth
-import salonRouter from './salon.routes.js'; // Importar el Router de Salones
-import reservaRouter from './RESERVA.ROUTES.js';
-import usuarioRoutes from './usuario.routes.js';
-const apiRouter = Router();
+import authRouter from './auth.routes.js';
+import usuarioRouter from './usuario.routes.js';
 
-apiRouter.use('/usuarios', usuarioRoutes);
+const router = Router();
 
+// Monta el enrutador de autenticación en la ruta /auth
+// Todas las rutas definidas en auth.routes.js tendrán el prefijo /api/auth
+router.use('/auth', authRouter);
+router.use('/usuarios', usuarioRouter);
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-// PARA LA ENTREGA FINAL Y PODER PROBAR EN POSTAMAN, DESCOMENTO ESTAS DOS LINESS!!! 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-import servicioRouter from './SERVICIO.ROUTES.js';
-import turnoRouter from './TURNO.ROUTES.js';
+// Aquí puedes añadir otros enrutadores (salones, servicios, etc.)
 
-
-
-// ===============================================
-// RUTAS MÓDULO AUTH
-// Resultado: POST /api/auth/login
-// También incluye /api/auth/test-email para probar envío de correo
-// ===============================================
-apiRouter.use('/auth', authRouter);
-
-// ===============================================
-// RUTAS PROTEGIDAS DE ENTIDADES (Persona 2)
-// El prefijo '/api' se define en app.js.
-// Resultado: /api/salones, /api/servicios, etc.
-// ===============================================
-apiRouter.use('/salones', salonRouter); // Montar el router de Salones bajo '/salones'
-
-// Ejemplo para futuras entidades
-apiRouter.use('/servicios', servicioRouter); 
-apiRouter.use('/turnos', turnoRouter);       
-apiRouter.use('/reservas', reservaRouter);
-
-export default apiRouter;
+export default router;

@@ -17,7 +17,7 @@ const hashPassword = async (plainText) => {
 export const getUserByUsername = async (username) => {
   const pool = getDbPool()
   const [rows] = await pool.query(
-    'SELECT usuario_id, nombre, apellido, nombre_usuario, password, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
+    'SELECT usuario_id, nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
     [username]
   )
   return rows.length ? rows[0] : null
@@ -33,7 +33,7 @@ export const verifyPassword = async (plainPassword, hashedPassword, userId) => {
 
   // Caso 1: bcrypt actual
   if (hashedPassword.startsWith('$2a$') || hashedPassword.startsWith('$2b$') || hashedPassword.startsWith('$2y$')) {
-    esValida = await bcrypt.compare(passwordLimpia, hashedPassword)
+    esValida = await bcrypt.compare(passwordLimpia, hashedPassword);
 
   // Caso 2: hash MD5 antiguo
   } else if (hashedPassword.length === 32 && /^[a-f0-9]{32}$/i.test(hashedPassword)) {
@@ -44,7 +44,7 @@ export const verifyPassword = async (plainPassword, hashedPassword, userId) => {
     if (esValida) {
       const nuevoHash = await bcrypt.hash(passwordLimpia, 10)
       await pool.query(
-        `UPDATE usuarios SET password = ? WHERE usuario_id = ?`,
+        `UPDATE usuarios SET contrasenia = ? WHERE usuario_id = ?`,
         [nuevoHash, userId]
       )
       console.log(`Usuario ${userId} migrado de MD5 a bcrypt`)
@@ -61,16 +61,16 @@ export const verifyPassword = async (plainPassword, hashedPassword, userId) => {
 // ===============================================================
 // Obtener todos los usuarios activos
 // ===============================================================
-export const getAllUsuarios = async () => {
+export const getAllUsers = async () => {
   const pool = getDbPool()
   const [rows] = await pool.query('SELECT * FROM usuarios WHERE activo = 1')
   return rows
 }
 
 // ===============================================================
-// Obtener usuario por ID
+// Obtener un usuario por ID
 // ===============================================================
-export const getUsuarioById = async (id) => {
+export const getUserById = async (id) => {
   const pool = getDbPool()
   const [rows] = await pool.query(
     'SELECT * FROM usuarios WHERE usuario_id = ? AND activo = 1',
@@ -82,11 +82,11 @@ export const getUsuarioById = async (id) => {
 // ===============================================================
 // Crear nuevo usuario (guarda siempre con bcrypt)
 // ===============================================================
-export const createUsuario = async (data) => {
+export const createUser = async (data) => {
   const pool = getDbPool()
   const hash = await hashPassword(data.contrasenia)
   const [result] = await pool.query(
-    `INSERT INTO usuarios (nombre, apellido, nombre_usuario, password, tipo_usuario, celular, foto)
+    `INSERT INTO usuarios (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.nombre, data.apellido, data.nombre_usuario, hash, data.tipo_usuario, data.celular, data.foto]
   )
@@ -96,7 +96,7 @@ export const createUsuario = async (data) => {
 // ===============================================================
 // Actualizar usuario (rehash si incluye nueva contraseña)
 // ===============================================================
-export const updateUsuario = async (id, data) => {
+export const updateUser = async (id, data) => {
   const pool = getDbPool()
   const updateData = { ...data }
 
@@ -111,15 +111,15 @@ export const updateUsuario = async (id, data) => {
 // ===============================================================
 // Soft delete (marca al usuario como inactivo)
 // ===============================================================
-export const softDeleteUsuario = async (id) => {
+export const softDeleteUser = async (id) => {
   const pool = getDbPool()
   await pool.query('UPDATE usuarios SET activo = 0 WHERE usuario_id = ?', [id])
 }
 
 // ===============================================================
-// Obtener emails de administradores activos
+// Obtener los emails de los administradores activos
 // ===============================================================
-export const obtenerEmailsAdministradores = async () => {
+export const getAdminEmails = async () => {
   const pool = getDbPool()
   const [rows] = await pool.query(
     'SELECT nombre_usuario FROM usuarios WHERE tipo_usuario = 1 AND activo = 1'

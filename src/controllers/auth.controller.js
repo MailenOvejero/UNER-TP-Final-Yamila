@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js';
+import { findUserByUsername, validatePassword } from '../services/usuario.service.js';
 import { ROLES } from '../config/roles.js';
 
 /*
@@ -27,9 +27,9 @@ export const login = async (req, res, next) => {
     //  COMPROBACIÓN INICIAL (400 Bad Request)
     // **********************************************************
     const { nombre_usuario, password, contrasenia } = req.body;
-    const passwordIngresada = password || contrasenia;
+    const enteredPassword = password || contrasenia;
 
-    if (!nombre_usuario || !passwordIngresada) {
+    if (!nombre_usuario || !enteredPassword) {
         const error = new Error('Faltan credenciales (usuario o contraseña).');
         error.status = 400;
         return next(error);
@@ -37,12 +37,11 @@ export const login = async (req, res, next) => {
 
     try {
         //  Buscar usuario
-        const user = await buscarUsuarioPorEmail(nombre_usuario);
+        const user = await findUserByUsername(nombre_usuario);
 
         console.log('Usuario encontrado:', user);
 
-        //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && await validarPassword(passwordIngresada, user.password, user.usuario_id);
+        const isPasswordValid = user && await validatePassword(enteredPassword, user.contrasenia, user.usuario_id);
 
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {
