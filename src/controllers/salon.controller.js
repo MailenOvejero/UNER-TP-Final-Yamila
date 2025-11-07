@@ -88,7 +88,7 @@ export const createSalon = async (req, res, next) => {
     try {
         //  Llamar al servicio
         const newSalonId = await salonService.createSalon(req.body);
-
+        apicacheInstance.clear();
         // Respuesta exitosa
         res.status(201).json({
             status: 'success',
@@ -143,6 +143,7 @@ export const updateSalon = async (req, res, next) => {
         }
 
         // Respuesta exitosa
+        apicacheInstance.clear();
         res.status(200).json({
             status: 'success',
             message: `Salón con ID ${salonId} actualizado exitosamente.`,
@@ -179,6 +180,7 @@ export const deleteSalon = async (req, res, next) => {
         }
 
         //  Respuesta exitosa
+        apicacheInstance.clear();
         res.status(200).json({
             status: 'success',
             message: `Salón con ID ${salonId} desactivado (soft delete) exitosamente.`,

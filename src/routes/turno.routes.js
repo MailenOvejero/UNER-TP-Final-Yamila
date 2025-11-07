@@ -3,6 +3,8 @@ import { getTurnos, getTurno, createTurno, updateTurno, deleteTurno } from '../c
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 import { ROLES } from '../config/roles.js';
 import { createTurnoValidation, updateTurnoValidation } from '../middlewares/turno.validation.js';
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
+
 
 const router = Router();
 
@@ -23,7 +25,7 @@ const writeRoles = [ROLES.EMPLEADO, ROLES.ADMIN];
  *       401:
  *         description: No autorizado
  */
-router.get('/', verifyToken, authorize(readRoles), getTurnos);
+router.get('/', verifyToken, authorize(readRoles),cacheMiddleware(), getTurnos);
 
 /**
  * @swagger
@@ -45,7 +47,7 @@ router.get('/', verifyToken, authorize(readRoles), getTurnos);
  *       404:
  *         description: Turno no encontrado
  */
-router.get('/:id', verifyToken, authorize(readRoles), getTurno);
+router.get('/:id', verifyToken, authorize(readRoles),cacheMiddleware(), getTurno);
 
 /**
  * @swagger

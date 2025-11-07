@@ -27,6 +27,7 @@ export const createServicio = async (req, res, next) => {
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
     const id = await servicioService.createServicio(req.body);
+    apicacheInstance.clear();
     res.status(201).json({ status: 'success', servicio_id: id });
   } catch (error) {
     next(error);
@@ -41,6 +42,7 @@ export const updateServicio = async (req, res, next) => {
   try {
     const updated = await servicioService.updateServicio(id, req.body);
     if (updated === 0) return next(new Error('No se pudo actualizar'));
+    apicacheInstance.clear();
     res.status(200).json({ status: 'success', message: 'Servicio actualizado' });
   } catch (error) {
     next(error);
@@ -53,6 +55,7 @@ export const deleteServicio = async (req, res, next) => {
   try {
     const deleted = await servicioService.deleteServicio(id);
     if (deleted === 0) return next(new Error('No se pudo desactivar'));
+    apicacheInstance.clear();
     res.status(200).json({ status: 'success', message: 'Servicio desactivado' });
   } catch (error) {
     next(error);

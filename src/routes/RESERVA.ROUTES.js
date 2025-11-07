@@ -11,6 +11,8 @@ import {
   generarReporteCSV
 } from '../controllers/RESERVA.CONTROLLER.js';
 
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
+
 import {
   createReservaValidation,
   updateReservaValidation
@@ -18,6 +20,8 @@ import {
 
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 import { ROLES } from '../config/roles.js';
+import { upload } from '../config/multer.config.js';
+
 
 const router = Router();
 
@@ -38,7 +42,7 @@ router.use(verifyToken);
  *       401:
  *         description: No autorizado
  */
-router.get('/mis-reservas', authorize([ROLES.CLIENTE]), getReservasDelCliente);
+router.get('/mis-reservas', authorize([ROLES.CLIENTE]), cacheMiddleware(), getReservasDelCliente);
 
 /**
  * @swagger
@@ -54,7 +58,7 @@ router.get('/mis-reservas', authorize([ROLES.CLIENTE]), getReservasDelCliente);
  *       401:
  *         description: No autorizado
  */
-router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), getReservas);
+router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservas);
 
 /**
  * @swagger
@@ -112,7 +116,7 @@ router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), getReservas);
  *       401:
  *         description: No autorizado
  */
-router.post('/', authorize([ROLES.CLIENTE]), createReservaValidation, createReserva);
+router.post('/', authorize([ROLES.CLIENTE]), upload.single('foto_cumpleaniero'), createReservaValidation, createReserva);
 
 /**
  * @swagger
@@ -191,7 +195,7 @@ router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
  *       401:
  *         description: No autorizado
  */
-router.get('/estadisticas', authorize([ROLES.ADMIN]), estadisticasReservas);
+router.get('/estadisticas', authorize([ROLES.ADMIN]), cacheMiddleware(), estadisticasReservas);
 
 /**
  * @swagger
@@ -215,7 +219,7 @@ router.get('/estadisticas', authorize([ROLES.ADMIN]), estadisticasReservas);
  *       404:
  *         description: Reserva no encontrada
  */
-router.get('/:id/pdf', authorize([ROLES.ADMIN]), generarReportePDF);
+router.get('/:id/pdf', authorize([ROLES.ADMIN]), cacheMiddleware(), generarReportePDF);
 
 /**
  * @swagger
@@ -231,6 +235,6 @@ router.get('/:id/pdf', authorize([ROLES.ADMIN]), generarReportePDF);
  *       401:
  *         description: No autorizado
  */
-router.get('/csv', authorize([ROLES.ADMIN]), generarReporteCSV);
+router.get('/csv', authorize([ROLES.ADMIN]), cacheMiddleware(), generarReporteCSV);
 
 export default router;

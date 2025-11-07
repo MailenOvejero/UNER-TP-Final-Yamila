@@ -4,6 +4,8 @@ import { generarCSVReservas } from '../utils/csvGenerator.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
+import { generarInvitacion } from '../utils/invitationGenerator.js';
+import { apicacheInstance } from '../config/cache.js';
 
 export const getReservas = async (req, res, next) => {
   try {
@@ -36,7 +38,13 @@ export const getReservasDelCliente = async (req, res, next) => {
 
 export const createReserva = async (req, res, next) => {
   try {
-    const nuevaReserva = await reservaService.create(req.body);
+    // La ruta de la imagen subida está en req.file.path
+    const datosReserva = {
+      ...req.body,
+      foto_cumpleaniero: req.file ? req.file.path : null
+    };
+
+    const nuevaReserva = await reservaService.create(datosReserva);
     const { reserva_id } = nuevaReserva;
 
     const pool = getDbPool();
@@ -51,6 +59,7 @@ export const createReserva = async (req, res, next) => {
         u.apellido,
         u.nombre_usuario AS email,
         s.titulo AS salon,
+        s.ubicacion,
         t.hora_desde,
         t.hora_hasta
       FROM reservas r
@@ -62,6 +71,24 @@ export const createReserva = async (req, res, next) => {
 
     const reserva = rows[0];
 
+    // ---- Nuevo: Generar y adjuntar invitación si se subió una imagen ----
+    let adjuntos = [];
+    if (req.file) {
+      try {
+        const invitationPath = `./public/uploads/invitaciones/invitacion-${reserva_id}.png`;
+        await generarInvitacion(req.file.path, reserva, invitationPath);
+        adjuntos.push({
+          filename: `invitacion-${reserva_id}.png`,
+          path: invitationPath,
+          cid: 'invitacion' // content-id para usar en el HTML del correo
+        });
+        console.log(`[INVITACIÓN] Adjunto de invitación preparado para el correo.`);
+      } catch (invitationError) {
+        console.error(`[INVITACIÓN] No se pudo generar la invitación, se enviará el correo sin ella.`, invitationError.message);
+        // El flujo continúa aunque la invitación falle
+      }
+    }
+
     // Armar mensaje personalizado
     const mensaje = `
       Hola ${reserva.nombre} ${reserva.apellido},<br><br>
@@ -70,6 +97,7 @@ export const createReserva = async (req, res, next) => {
       Temática: ${reserva.tematica || 'Sin temática'}<br>
       Importe total: $${reserva.importe_total}<br><br>
       Gracias por confiar en nosotros 🎉
+      ${adjuntos.length > 0 ? '<br><br>¡Adjuntamos tu invitación personalizada!' : ''}
     `;
 
     // Enviar correo al cliente
@@ -77,6 +105,7 @@ export const createReserva = async (req, res, next) => {
       destinatario: reserva.email,
       asunto: 'Confirmación de reserva',
       mensaje,
+      adjuntos // Adjuntar la invitación generada
     });
 
     // ---- Nuevo: enviar correo a todos los administradores reales ----
@@ -107,7 +136,7 @@ export const createReserva = async (req, res, next) => {
     console.log(`[NOTIFICACIÓN] Reserva confirmada para el cliente ID ${clienteId}`);
     console.log(`[NOTIFICACIÓN] Administrador notificado sobre la nueva reserva ID ${reserva_id}`);
     console.log(`[NOTIFICACIÓN] Correo enviado a ${reserva.email} por reserva ID ${reserva_id}`);
-
+    apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
   } catch (error) {
     next(error);
@@ -117,6 +146,7 @@ export const createReserva = async (req, res, next) => {
 export const updateReserva = async (req, res, next) => {
   try {
     const actualizada = await reservaService.update(req.params.id, req.body);
+    apicacheInstance.clear();
     res.status(200).json(actualizada);
   } catch (error) {
     next(error);
@@ -126,6 +156,7 @@ export const updateReserva = async (req, res, next) => {
 export const deleteReserva = async (req, res, next) => {
   try {
     await reservaService.softDelete(req.params.id);
+    apicacheInstance.clear();
     res.status(200).json({ message: 'Reserva desactivada' });
   } catch (error) {
     next(error);

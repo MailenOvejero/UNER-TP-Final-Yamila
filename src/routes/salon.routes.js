@@ -3,6 +3,8 @@ import { getSalones, getSalon, createSalon, updateSalon, deleteSalon } from '../
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 import { ROLES } from '../config/roles.js';
 import { createSalonValidation, updateSalonValidation } from '../middlewares/salon.validation.js';
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
+
 
 const router = Router();
 
@@ -134,7 +136,7 @@ router.delete('/:id', verifyToken, authorize(writeRoles), deleteSalon);
  *       401:
  *         description: No autorizado
  */
-router.get('/', verifyToken, authorize(readRoles), getSalones);
+router.get('/', verifyToken, authorize(readRoles),cacheMiddleware(), getSalones);
 
 /**
  * @swagger
@@ -156,6 +158,6 @@ router.get('/', verifyToken, authorize(readRoles), getSalones);
  *       404:
  *         description: Salón no encontrado
  */
-router.get('/:id', verifyToken, authorize(readRoles), getSalon);
+router.get('/:id', verifyToken, authorize(readRoles),cacheMiddleware(), getSalon);
 
 export default router;

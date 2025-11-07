@@ -13,7 +13,7 @@ import {
   createServicioValidation,
   updateServicioValidation
 } from '../middlewares/servicio.validation.js';
-
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
 const router = Router();
 
 const readRoles = [ROLES.CLIENTE, ROLES.EMPLEADO, ROLES.ADMIN];
@@ -33,7 +33,7 @@ const writeRoles = [ROLES.EMPLEADO, ROLES.ADMIN];
  *       401:
  *         description: No autorizado
  */
-router.get('/', verifyToken, authorize(readRoles), getServicios);
+router.get('/', verifyToken, authorize(readRoles),cacheMiddleware(), getServicios);
 
 /**
  * @swagger
@@ -55,7 +55,7 @@ router.get('/', verifyToken, authorize(readRoles), getServicios);
  *       404:
  *         description: Servicio no encontrado
  */
-router.get('/:id', verifyToken, authorize(readRoles), getServicio);
+router.get('/:id', verifyToken, authorize(readRoles),cacheMiddleware(), getServicio);
 
 /**
  * @swagger
