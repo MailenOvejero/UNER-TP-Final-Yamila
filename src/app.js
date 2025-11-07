@@ -145,3 +145,6 @@ async function startServer() {
         console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
         process.exit(1);
     }
+}
+
+startServer();
