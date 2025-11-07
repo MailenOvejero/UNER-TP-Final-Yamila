@@ -9,6 +9,8 @@ import {
   createUsuarioValidation,
   updateUsuarioValidation
 } from '../middlewares/usuario.validation.js';
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
+
 
 const router = Router();
 
@@ -28,7 +30,7 @@ router.use(authorize([ROLES.ADMIN]));
  *       200:
  *         description: Lista de usuarios
  */
-router.get('/', getUsuarios);
+router.get('/', cacheMiddleware(), getUsuarios);
 
 /**
  * @swagger
@@ -48,7 +50,7 @@ router.get('/', getUsuarios);
  *       200:
  *         description: Usuario encontrado
  */
-router.get('/:id', getUsuarioById);
+router.get('/:id', cacheMiddleware(), getUsuarioById);
 
 /**
  * @swagger

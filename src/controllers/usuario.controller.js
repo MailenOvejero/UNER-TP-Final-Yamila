@@ -25,6 +25,7 @@ export const createUsuario = async (req, res, next) => {
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
     const nuevo = await usuarioService.create(req.body);
+    apicacheInstance.clear();
     res.status(201).json(nuevo);
   } catch (error) {
     next(error);
@@ -36,6 +37,7 @@ export const updateUsuario = async (req, res, next) => {
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
     const actualizado = await usuarioService.update(req.params.id, req.body);
+    apicacheInstance.clear();
     res.status(200).json(actualizado);
   } catch (error) {
     next(error);
@@ -45,6 +47,7 @@ export const updateUsuario = async (req, res, next) => {
 export const deleteUsuario = async (req, res, next) => {
   try {
     await usuarioService.softDelete(req.params.id);
+    apicacheInstance.clear();
     res.status(200).json({ message: 'Usuario desactivado' });
   } catch (error) {
     next(error);

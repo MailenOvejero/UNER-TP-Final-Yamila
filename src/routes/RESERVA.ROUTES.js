@@ -18,6 +18,8 @@ import {
 
 import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 import { ROLES } from '../config/roles.js';
+import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
+
 
 const router = Router();
 
@@ -38,7 +40,7 @@ router.use(verifyToken);
  *       401:
  *         description: No autorizado
  */
-router.get('/mis-reservas', authorize([ROLES.CLIENTE]), getReservasDelCliente);
+router.get('/mis-reservas', authorize([ROLES.CLIENTE]), cacheMiddleware(), getReservasDelCliente);
 
 /**
  * @swagger
@@ -54,7 +56,7 @@ router.get('/mis-reservas', authorize([ROLES.CLIENTE]), getReservasDelCliente);
  *       401:
  *         description: No autorizado
  */
-router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), getReservas);
+router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservas);
 
 /**
  * @swagger
@@ -191,7 +193,7 @@ router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
  *       401:
  *         description: No autorizado
  */
-router.get('/estadisticas', authorize([ROLES.ADMIN]), estadisticasReservas);
+router.get('/estadisticas', authorize([ROLES.ADMIN]), cacheMiddleware(), estadisticasReservas);
 
 /**
  * @swagger

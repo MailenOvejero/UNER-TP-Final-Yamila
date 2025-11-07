@@ -4,6 +4,7 @@ import { generarCSVReservas } from '../utils/csvGenerator.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
+import { apicacheInstance } from '../config/cache.js';
 
 export const getReservas = async (req, res, next) => {
   try {
@@ -108,7 +109,7 @@ export const createReserva = async (req, res, next) => {
     console.log(`[NOTIFICACIÓN] Reserva confirmada para el cliente ID ${clienteId}`);
     console.log(`[NOTIFICACIÓN] Administrador notificado sobre la nueva reserva ID ${reserva_id}`);
     console.log(`[NOTIFICACIÓN] Correo enviado a ${reserva.email} por reserva ID ${reserva_id}`);
-
+    apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
   } catch (error) {
     next(error);
@@ -118,6 +119,7 @@ export const createReserva = async (req, res, next) => {
 export const updateReserva = async (req, res, next) => {
   try {
     const actualizada = await reservaService.actualizarReserva(req.params.id, req.body);
+    apicacheInstance.clear();
     res.status(200).json(actualizada);
   } catch (error) {
     next(error);
@@ -127,6 +129,7 @@ export const updateReserva = async (req, res, next) => {
 export const deleteReserva = async (req, res, next) => {
   try {
     await reservaService.eliminarReserva(req.params.id);
+    apicacheInstance.clear();
     res.status(200).json({ message: 'Reserva desactivada' });
   } catch (error) {
     next(error);

@@ -88,7 +88,7 @@ export const createSalon = async (req, res, next) => {
     try {
         //  Llamar al servicio
         const newSalonId = await salonService.createSalon(req.body);
-
+        apicacheInstance.clear();
         // Respuesta exitosa
         res.status(201).json({
             status: 'success',
@@ -141,7 +141,7 @@ export const updateSalon = async (req, res, next) => {
             error.status = 404;
             return next(error);
         }
-
+        apicacheInstance.clear();
         // Respuesta exitosa
         res.status(200).json({
             status: 'success',
@@ -177,7 +177,7 @@ export const deleteSalon = async (req, res, next) => {
             error.status = 404;
             return next(error);
         }
-
+        apicacheInstance.clear();
         //  Respuesta exitosa
         res.status(200).json({
             status: 'success',
