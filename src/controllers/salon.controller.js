@@ -1,6 +1,6 @@
 import * as salonService from '../services/salon.service.js';
 import { validationResult } from 'express-validator';
-
+import { apicacheInstance } from '../config/cache.js';
 // ============================================================
 // BROWSE: Obtener todos los salones (GET /api/salones)
 // ============================================================

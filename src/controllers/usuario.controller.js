@@ -1,5 +1,7 @@
 import * as usuarioService from '../services/usuario.service.js';
 import { validationResult } from 'express-validator';
+import { apicacheInstance } from '../config/cache.js';
+
 
 export const getUsuarios = async (req, res, next) => {
   try {
