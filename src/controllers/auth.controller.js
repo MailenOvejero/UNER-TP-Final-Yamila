@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js';
+import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js'; 
 import { ROLES } from '../config/roles.js';
 
 /*
@@ -26,10 +26,9 @@ export const login = async (req, res, next) => {
     // **********************************************************
     //  COMPROBACIÓN INICIAL (400 Bad Request)
     // **********************************************************
-    const { nombre_usuario, password, contrasenia } = req.body;
-    const passwordIngresada = password || contrasenia;
+    const { nombre_usuario, password } = req.body;
 
-    if (!nombre_usuario || !passwordIngresada) {
+    if (!nombre_usuario || !password) {
         const error = new Error('Faltan credenciales (usuario o contraseña).');
         error.status = 400;
         return next(error);
@@ -39,12 +38,18 @@ export const login = async (req, res, next) => {
         //  Buscar usuario
         const user = await buscarUsuarioPorEmail(nombre_usuario);
 
-        console.log('Usuario encontrado:', user);
+        // **********************************************************
+        //  VALIDACIÓN DE USUARIO Y CONTRASEÑA (401 Unauthorized)
+        // **********************************************************
+        if (!user || !user.password) {
+            const error = new Error('Usuario no encontrado o sin contraseña.');
+            error.status = 401;
+            return next(error);
+        }
 
-        //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && await validarPassword(passwordIngresada, user.password, user.usuario_id);
+        const isPasswordValid = await validarPassword(password, user.password, user.usuario_id);
 
-        // Si NO hay usuario O la contraseña es inválida:
+        // Si la contraseña es inválida:
         if (!isPasswordValid) {
             const error = new Error('Credenciales inválidas.'); // CREAR Error con un mensaje
             error.status = 401; // Asigna el N° de error 
@@ -67,7 +72,7 @@ export const login = async (req, res, next) => {
             token: token,
             user: {
                 id: user.usuario_id,
-                nombre_usuario: user.nombre_usuario,
+                username: user.nombre_usuario,
                 role: roleName
             }
         });

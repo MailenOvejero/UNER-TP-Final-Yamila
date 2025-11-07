@@ -84,7 +84,7 @@ export const getUsuarioById = async (id) => {
 // ===============================================================
 export const createUsuario = async (data) => {
   const pool = getDbPool()
-  const hash = await hashPassword(data.contrasenia)
+  const hash = await hashPassword(data.password);
   const [result] = await pool.query(
     `INSERT INTO usuarios (nombre, apellido, nombre_usuario, password, tipo_usuario, celular, foto)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -100,8 +100,8 @@ export const updateUsuario = async (id, data) => {
   const pool = getDbPool()
   const updateData = { ...data }
 
-  if (data.contrasenia) {
-    updateData.contrasenia = await hashPassword(data.contrasenia)
+  if (data.password) {
+    updateData.password = await hashPassword(data.password)
   }
 
   await pool.query('UPDATE usuarios SET ? WHERE usuario_id = ?', [updateData, id])

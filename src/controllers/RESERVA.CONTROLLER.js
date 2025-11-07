@@ -1,7 +1,7 @@
 import * as reservaService from '../services/reserva.service.js';
 import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
-import { sendEmailWithTemplate } from '../services/email.service.js';
+import { enviarNotificacionReserva } from '../utils/email.helper.js'; 
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 import { apicacheInstance } from '../config/cache.js';
@@ -65,7 +65,7 @@ export const createReserva = async (req, res, next) => {
     const reserva = rows[0];
 
     // Enviar correo al cliente
-    await sendEmailWithTemplate(
+    await enviarNotificacionReserva(
       reserva.email,
       'Confirmación de tu reserva',
       'confirmacionReserva',
@@ -80,7 +80,7 @@ export const createReserva = async (req, res, next) => {
       const asuntoAdmin = `Nueva Reserva Creada (ID: ${reserva_id})`;
 
       for (const admin of admins) {
-        await sendEmailWithTemplate(
+        await enviarNotificacionReserva(
           admin.email,
           asuntoAdmin,
           'notificacionAdmin',

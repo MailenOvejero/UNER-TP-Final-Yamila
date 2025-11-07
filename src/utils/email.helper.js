@@ -1,31 +1,34 @@
-// src/utils/email.helper.js
 import nodemailer from "nodemailer";
 
 let transporter;
 
-if (process.env.NODE_ENV === "development") {
- //modosimulado no envia correos reales
-  const testAccount = await nodemailer.createTestAccount();
-  transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
-  console.log("Modo desarrollo: usando cuenta ficticia Ethereal");
-} else {
+// Inicializa el transporter según el entorno
+export const initTransporter = async () => {
+  if (process.env.NODE_ENV === "development") {
+    // Modo simulado: no envía correos reales
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+    console.log(" Modo desarrollo: usando cuenta ficticia Ethereal");
+  } else {
+    // Modo producción: usa Gmail
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  }
+};
 
-  transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-}
-
+// Función para enviar notificación de reserva
 export const enviarNotificacionReserva = async ({ destinatario, asunto, mensaje }) => {
   const mailOptions = {
     from: `"PROGIII Reservas" <${process.env.EMAIL_USER}>`,

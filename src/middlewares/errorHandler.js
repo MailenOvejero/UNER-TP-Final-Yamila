@@ -1,6 +1,6 @@
 
 import { obtenerEmailsAdmins } from '../services/usuario.service.js';
-import { sendEmailWithTemplate } from '../services/email.service.js';
+import { enviarNotificacionReserva } from '../utils/email.helper.js';
 
 
 export const errorHandler = async (err, req, res, next) => {
@@ -14,19 +14,19 @@ export const errorHandler = async (err, req, res, next) => {
 
     //  Define el estado HTTP (usa 500 si no está especificado en el error)
     const statusCode = err.status || 500;
-    
+
     // Logica para mostrar detalles del error: solo en desarrollo o debug
     let errorDetails = {}; // Inicializamos como objeto vacío
 
     if (env === 'development' || env === 'debug') {
         console.error(err.stack); // Usar err.stack da info completa del error
-        
+
         // Incluimos el stack y otros detalles en la respuesta JSON
         errorDetails = {
             stack: err.stack,
             type: err.name,
-            code: err.code 
-        };      
+            code: err.code
+        };
     }
 
     //  Enviar notificación por mail a administradores solo si es un error del servidor (5xx)
@@ -34,7 +34,7 @@ export const errorHandler = async (err, req, res, next) => {
         try {
             const destinatarios = await obtenerEmailsAdmins();
             const asunto = `Alerta de Error ${statusCode} en ${req.method} ${req.originalUrl}`;
-    
+
             // Objeto de datos para la plantilla
             const emailData = {
                 statusCode,
@@ -45,14 +45,22 @@ export const errorHandler = async (err, req, res, next) => {
                 fecha: new Date().toLocaleString(),
                 stack: (env !== 'production') ? err.stack : null
             };
-    
+
             for (const email of destinatarios) {
-                await sendEmailWithTemplate(
-                    email,
+                await enviarNotificacionReserva({
+                    destinatario: email,
                     asunto,
-                    'errorNotificacion',
-                    emailData
-                );
+                    mensaje: `
+    <h3>Error ${statusCode} en ${req.method} ${req.originalUrl}</h3>
+    <ul>
+      <li><strong>Usuario:</strong> ${emailData.usuario}</li>
+      <li><strong>Mensaje:</strong> ${emailData.mensaje}</li>
+      <li><strong>Fecha:</strong> ${emailData.fecha}</li>
+    </ul>
+    ${emailData.stack ? `<pre>${emailData.stack}</pre>` : ''}
+  `
+                });
+
             }
         } catch (mailError) {
             console.error('Error al enviar notificación de error por mail:', mailError.message);
@@ -61,8 +69,8 @@ export const errorHandler = async (err, req, res, next) => {
 
 
     res.status(statusCode).json({
-        status:'error',
+        status: 'error',
         message: err.message || 'Error Interno del Servidor',
-        ...errorDetails 
+        ...errorDetails
     });
 };

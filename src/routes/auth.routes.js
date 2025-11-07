@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { login } from '../controllers/auth.controller.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
+import { loginRateLimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = Router();
 
@@ -62,7 +63,7 @@ const router = Router();
  *       401:
  *         description: Credenciales inválidas
  */
-router.post('/login', login);
+router.post('/login', loginRateLimiter, login);
 
 // Ruta de prueba para envío de correo
 router.get('/test-email', async (req, res) => {

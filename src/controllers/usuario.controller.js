@@ -1,7 +1,7 @@
 import * as usuarioService from '../services/usuario.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
-import { sendEmailWithTemplate } from '../services/email.service.js';
+import { enviarNotificacionReserva } from '../utils/email.helper.js';
 
 
 export const getUsuarios = async (req, res, next) => {
@@ -32,7 +32,7 @@ export const createUsuario = async (req, res, next) => {
 
     // Enviar correo de bienvenida
     try {
-      await sendEmailWithTemplate(
+      await enviarNotificacionReserva(
         nuevoUsuario.nombre_usuario, // El email del nuevo usuario
         '¡Bienvenido/a a nuestra plataforma!',
         'bienvenida',
