@@ -1,0 +1,51 @@
+<mjml>
+  <mj-body background-color="#f4f4f4">
+    <mj-section background-color="#ffffff" padding="20px 0">
+      <mj-column>
+        <mj-image width="120px" src="https://i.imgur.com/So3m2Q2.png" alt="Logo de la empresa"></mj-image>
+        <mj-divider border-color="#007bff" border-width="2px"></mj-divider>
+        <mj-text font-size="24px" color="#333" font-family="Arial, sans-serif" align="center">
+          ¡Tu reserva está confirmada!
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="0 20px 20px 20px">
+      <mj-column>
+        <mj-text font-size="18px" color="#333">
+          Hola <strong><%= nombre %> <%= apellido %></strong>,
+        </mj-text>
+        <mj-text font-size="16px" color="#555">
+          Gracias por elegirnos. Aquí están los detalles de tu reserva:
+        </mj-text>
+        <mj-table>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
+            <td style="padding:10px 0;"><strong>Salón:</strong></td>
+            <td style="padding:10px 0;"><%= salon %></td>
+          </tr>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
+            <td style="padding:10px 0;"><strong>Fecha:</strong></td>
+            <td style="padding:10px 0;"><%= fecha_reserva %></td>
+          </tr>
+          <tr style="border-bottom:1px solid #ecedee;text-align:left;">
+            <td style="padding:10px 0;"><strong>Turno:</strong></td>
+            <td style="padding:10px 0;"><%= hora_desde %> a <%= hora_hasta %></td>
+          </tr>
+          <tr style="text-align:left;">
+            <td style="padding:10px 0;"><strong>Importe Total:</strong></td>
+            <td style="padding:10px 0;">$<%= importe_total %></td>
+          </tr>
+        </mj-table>
+        <mj-button background-color="#28a745" color="white" href="http://localhost:3000/mis-reservas">
+          Ver mis reservas
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text align="center" color="#888" font-size="12px">
+          Gracias por confiar en nosotros 🎉
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

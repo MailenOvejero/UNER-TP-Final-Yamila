@@ -1,6 +1,7 @@
 import * as usuarioService from '../services/usuario.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
+import { sendEmailWithTemplate } from '../services/email.service.js';
 
 
 export const getUsuarios = async (req, res, next) => {
@@ -26,9 +27,21 @@ export const createUsuario = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
-    const nuevo = await usuarioService.create(req.body);
+    const nuevoUsuario = await usuarioService.create(req.body);
     apicacheInstance.clear();
-    res.status(201).json(nuevo);
+
+    // Enviar correo de bienvenida
+    try {
+      await sendEmailWithTemplate(
+        nuevoUsuario.nombre_usuario, // El email del nuevo usuario
+        '¡Bienvenido/a a nuestra plataforma!',
+        'bienvenida',
+        { nombre: nuevoUsuario.nombre } // Datos para la plantilla
+      );
+    } catch (emailError) {
+      console.error(`[REGISTRO] Usuario ${nuevoUsuario.usuario_id} creado, pero falló el envío de correo: ${emailError.message}`);
+    }
+    res.status(201).json(nuevoUsuario);
   } catch (error) {
     next(error);
   }

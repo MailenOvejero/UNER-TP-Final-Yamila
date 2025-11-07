@@ -1,6 +1,6 @@
 
-import { enviarNotificacionReserva } from '../utils/email.helper.js';
 import { obtenerEmailsAdmins } from '../services/usuario.service.js';
+import { sendEmailWithTemplate } from '../services/email.service.js';
 
 
 export const errorHandler = async (err, req, res, next) => {
@@ -29,26 +29,34 @@ export const errorHandler = async (err, req, res, next) => {
         };      
     }
 
-    //  Enviar notificación por mail a administradores activos
-    try {
-        const destinatarios = await obtenerEmailsAdmins();
-        const asunto = `Error ${statusCode} en ${req.method} ${req.originalUrl}`;
-        const mensaje = `
-            <h3>Se ha producido un error en el sistema</h3>
-            <ul>
-                <li><strong>Ruta:</strong> ${req.originalUrl}</li>
-                <li><strong>Método:</strong> ${req.method}</li>
-                <li><strong>Usuario:</strong> ${req.user?.nombre_usuario || 'No autenticado'}</li>
-                <li><strong>Mensaje:</strong> ${err.message}</li>
-                <li><strong>Fecha:</strong> ${new Date().toLocaleString()}</li>
-            </ul>
-            ${env !== 'production' ? `<pre>${err.stack}</pre>` : ''}
-        `;
-        for (const email of destinatarios) {
-            await enviarNotificacionReserva({ destinatario: email, asunto, mensaje });
+    //  Enviar notificación por mail a administradores solo si es un error del servidor (5xx)
+    if (statusCode >= 500) {
+        try {
+            const destinatarios = await obtenerEmailsAdmins();
+            const asunto = `Alerta de Error ${statusCode} en ${req.method} ${req.originalUrl}`;
+    
+            // Objeto de datos para la plantilla
+            const emailData = {
+                statusCode,
+                ruta: req.originalUrl,
+                metodo: req.method,
+                usuario: req.user?.nombre_usuario || 'No autenticado',
+                mensaje: err.message,
+                fecha: new Date().toLocaleString(),
+                stack: (env !== 'production') ? err.stack : null
+            };
+    
+            for (const email of destinatarios) {
+                await sendEmailWithTemplate(
+                    email,
+                    asunto,
+                    'errorNotificacion',
+                    emailData
+                );
+            }
+        } catch (mailError) {
+            console.error('Error al enviar notificación de error por mail:', mailError.message);
         }
-    } catch (mailError) {
-        console.error('Error al enviar notificación por mail:', mailError.message);
     }
 
 

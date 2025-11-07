@@ -1,7 +1,7 @@
 import * as reservaService from '../services/reserva.service.js';
 import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
-import { enviarNotificacionReserva } from '../utils/email.helper.js';
+import { sendEmailWithTemplate } from '../services/email.service.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 import { apicacheInstance } from '../config/cache.js';
@@ -64,51 +64,32 @@ export const createReserva = async (req, res, next) => {
 
     const reserva = rows[0];
 
-    // Armar mensaje personalizado
-    const mensaje = `
-      Hola ${reserva.nombre} ${reserva.apellido},<br><br>
-      Tu reserva fue confirmada para el día ${reserva.fecha_reserva} en el salón "${reserva.salon}".<br>
-      Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>
-      Temática: ${reserva.tematica || 'Sin temática'}<br>
-      Importe total: $${reserva.importe_total}<br><br>
-      Gracias por confiar en nosotros 🎉
-    `;
-
     // Enviar correo al cliente
-    await enviarNotificacionReserva({
-      destinatario: reserva.email,
-      asunto: 'Confirmación de reserva',
-      mensaje,
-    });
+    await sendEmailWithTemplate(
+      reserva.email,
+      'Confirmación de tu reserva',
+      'confirmacionReserva',
+      reserva
+    );
 
     // ---- Nuevo: enviar correo a todos los administradores reales ----
     try {
       const [admins] = await pool.query(`
         SELECT nombre_usuario AS email FROM usuarios WHERE tipo_usuario = 1 AND activo = 1
       `);
+      const asuntoAdmin = `Nueva Reserva Creada (ID: ${reserva_id})`;
 
       for (const admin of admins) {
-        try {
-          await enviarNotificacionReserva({
-            destinatario: admin.email,
-            asunto: 'Nueva reserva creada',
-            mensaje: `Se ha creado una nueva reserva (ID ${reserva_id}) para el cliente ${reserva.nombre} ${reserva.apellido}.<br>Fecha: ${reserva.fecha_reserva}<br>Salón: ${reserva.salon}<br>Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>Importe total: $${reserva.importe_total}`
-          });
-          console.log(`[NOTIFICACIÓN] Correo enviado a ${admin.email}`);
-        } catch (mailErr) {
-          console.error(`[NOTIFICACIÓN] Error enviando correo a ${admin.email}:`, mailErr.message);
-        }
+        await sendEmailWithTemplate(
+          admin.email,
+          asuntoAdmin,
+          'notificacionAdmin',
+          { ...reserva, asunto: asuntoAdmin }
+        );
       }
     } catch (adminQueryErr) {
       console.error('[NOTIFICACIÓN] Error obteniendo correos de administradores:', adminQueryErr.message);
     }
-    // ------------------------------------------------
-
-    // notificación automatica simulada
-    const clienteId = req.user.id;
-    console.log(`[NOTIFICACIÓN] Reserva confirmada para el cliente ID ${clienteId}`);
-    console.log(`[NOTIFICACIÓN] Administrador notificado sobre la nueva reserva ID ${reserva_id}`);
-    console.log(`[NOTIFICACIÓN] Correo enviado a ${reserva.email} por reserva ID ${reserva_id}`);
     apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
   } catch (error) {
