@@ -1,6 +1,6 @@
 
 import { getAdminEmails } from '../services/usuario.service.js';
-import { sendEmailWithTemplate } from '../../email.service.js';
+import { sendEmailWithTemplate } from '../services/email.service.js';
 
 
 export const errorHandler = async (err, req, res, next) => {

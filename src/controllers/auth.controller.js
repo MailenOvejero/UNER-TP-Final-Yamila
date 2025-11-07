@@ -41,7 +41,7 @@ export const login = async (req, res, next) => {
 
         console.log('Usuario encontrado:', user);
 
-        const isPasswordValid = user && await validatePassword(enteredPassword, user.contrasenia, user.usuario_id);
+        const isPasswordValid = user && await validatePassword(enteredPassword, user.password, user.usuario_id);
 
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {

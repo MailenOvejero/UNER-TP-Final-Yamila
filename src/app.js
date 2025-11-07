@@ -1,70 +1,83 @@
+// ************************************************************
+// CARGA DE VARIABLES DE ENTORNO (.env.development o .env.production)
+// ************************************************************
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Detecta si estamos en entorno de producción o desarrollo
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
+
+// Carga las variables desde el archivo correspondiente (desde raíz del proyecto)
+dotenv.config({ path: path.join(__dirname, envFile) });
+
+
+
+// Verifica que las variables se hayan cargado correctamente
+console.log('[ENVIRONMENT] Archivo cargado:', envFile);
+console.log('[EMAIL SERVICE] Configuración SMTP:', {
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  user: process.env.EMAIL_USER,
+  pass: process.env.EMAIL_PASS ? '***' : undefined,
+});
+
+// ************************************************************
+// IMPORTACIÓN DE DEPENDENCIAS PRINCIPALES
+// ************************************************************
 import express from 'express';
-import chalk from 'chalk';    // colores
-import dotenv from 'dotenv';  // variable de entorno
-import cors from 'cors';      // dominios multiples y seguros
-import compression from 'compression';  // compresion de datos
+import chalk from 'chalk';
+import cors from 'cors';
+import compression from 'compression';
+import helmet from 'helmet';
 import { setupLogging } from './middlewares/logging.middleware.js';
-import helmet from 'helmet';  // seguridad
 import { setupSwagger } from './swagger.js';
-
-
-// Determina el archivo a cargar basado en NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' 
-    ? '.env.production' 
-    : '.env.development';
-dotenv.config({ path: envFile });  // CARGA DE VARIABLES DE ENTORNO
-
-// Importamos la función de inicialización del pool DEBE IR DESPUÉS de dotenv.config()
-import { initializeDbPool } from './config/db.js'; 
-
-// IMPORTAMOS EL ROUTER CENTRAL DE LA API
-import apiRouter from './routes/index.js'; // Contiene /auth, /salones, etc.
-
-// IMPORTAMOS MIDDLEWARES DE SEGURIDAD Y CIERRE
-import { verifyToken } from './middlewares/auth.middleware.js'; 
-import { notFound, errorHandler } from './middlewares/index.js'; 
-
-const app = express(); 
+import { initializeDbPool } from './config/db.js';
+import { verifyToken } from './middlewares/auth.middleware.js';
+import { notFound, errorHandler } from './middlewares/index.js';
 
 // ************************************************************
-// CONFIGURACIÓN
+// IMPORTACIÓN DE RUTAS
 // ************************************************************
+import apiRouter from './routes/index.js';
+import authRouter from './routes/auth.routes.js';
+import usuarioRouter from './routes/usuario.routes.js';
 
-// Settings de aplicación: Usar variables de entorno para HOST y PORT
+// ************************************************************
+// CONFIGURACIÓN DE LA APP
+// ************************************************************
+const app = express();
+
 app.set('host', process.env.HOST || '127.0.0.1');
 app.set('port', process.env.PORT || 3000);
 app.set('app name', 'API Rest');
 app.set('version', '1.0.0');
-
-// Settings de desarrollo
 app.set('env', process.env.NODE_ENV || 'development');
 
-// seguridad
+// Seguridad HTTP
 app.use(helmet());
 
 // ************************************************************
-// MIDDLEWARES GLOBALES (Orden Lógico de Ejecución)
+// MIDDLEWARES GLOBALES
 // ************************************************************
-
-// - LOGGING
 const morganMiddleware = setupLogging(app.get('env'));
-// - RENDIMIENTO
-app.use(compression()); 
-// - SEGURIDAD DE DOMINIOS
-app.use(cors());        
-
-// - BODY PARSERS - DEBEN IR ANTES DE CUALQUIER RUTA QUE USE req.body
-app.use(express.json({ limit: '5mb' })); 
-app.use(express.urlencoded({ extended: true, limit: '5mb' })) 
+app.use(compression());
+app.use(cors());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // ************************************************************
-// ZONA DE RUTAS DE LA APLICACIÓN
+// DOCUMENTACIÓN SWAGGER
 // ************************************************************
-
-//  Documentación Swagger (debe cargarse antes del middleware JWT)
 setupSwagger(app);
 
-// RUTA DE BIENVENIDA (Pública y fuera del prefijo /api)
+// ************************************************************
+// RUTA DE BIENVENIDA (PÚBLICA)
+// ************************************************************
 app.get("/", (req, res) => {
   const appName = app.get('app name');
   const version = app.get('version');
@@ -73,36 +86,39 @@ app.get("/", (req, res) => {
     <!DOCTYPE html>
     <html>
       <head><title>${appName}</title></head>
-      <body>
+      <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
         <h1>${appName}</h1>
         <h2>Versión: ${version}</h2>
+        <p>Servidor activo en modo: <strong>${app.get('env')}</strong></p>
       </body>
     </html>
-  `)
+  `);
 });
 
-// MIDDLEWARE DE AUTENTICACIÓN (JWT Check)
-// CUALQUIER RUTA DEFINIDA DESPUÉS DE ESTA LÍNEA, REQUERIRÁ UN TOKEN VÁLIDO.
-// Middleware JWT: protege todo excepto el login y Swagger
+// ************************************************************
+// RUTAS PÚBLICAS
+// ************************************************************
+app.use('/api/auth', authRouter);
+app.use('/api/usuarios', usuarioRouter);
+
+// ************************************************************
+// MIDDLEWARE DE AUTENTICACIÓN (JWT)
+// ************************************************************
 app.use((req, res, next) => {
-  const isSwagger = req.originalUrl.includes('/docs');
-  const isLogin = req.originalUrl === '/api/auth/login';
-  
-  // Permite el paso si es una ruta de Swagger o la ruta de login.
-  if (isSwagger || isLogin) {
-    return next(); // deja pasar swagger sin verificar token
+  if (req.path.startsWith('/api/auth') || req.path.startsWith('/docs')) {
+    return next();
   }
-
-  verifyToken(req, res, next); // todas las demás rutas sí requieren token
+  verifyToken(req, res, next);
 });
 
-
-
-
-// RUTA CENTRAL DE LA API
+// ************************************************************
+// RUTAS PRIVADAS
+// ************************************************************
 app.use('/api', apiRouter);
 
-// DEBUG: Mostrar todas las rutas registradas en la app (solo si existen)
+// ************************************************************
+// DEPURACIÓN DE RUTAS REGISTRADAS
+// ************************************************************
 if (app._router && app._router.stack) {
   app._router.stack.forEach((r) => {
     if (r.route && r.route.path) {
@@ -117,35 +133,31 @@ if (app._router && app._router.stack) {
 }
 
 // ************************************************************
-// MIDDLEWARES DE CIERRE (SIEMPRE AL FINAL)
+// MIDDLEWARES DE CIERRE
 // ************************************************************
-
-app.use(notFound);    // Página personalizada de error 404
-app.use(errorHandler);// Página personalizada de error 500
+app.use(notFound);
+app.use(errorHandler);
 
 // ************************************************************
 // INICIO DEL SERVIDOR ASÍNCRONO
 // ************************************************************
 async function startServer() {
-    try {
-        // a - INICIALIZAR EL POOL DE LA BASE DE DATOS (DEBE SER EL PRIMERO)
-        // Esto garantiza que process.env.DB_NAME está disponible cuando se crea el pool.
-        await initializeDbPool(); 
+  try {
+    await initializeDbPool();
 
-        // b - Iniciar Express
-        app.listen(app.get('port'), app.get('host'), (error) => {
+    app.listen(app.get('port'), app.get('host'), (error) => {
+      if (error) throw error;
 
-            if (error) {
-                throw error;
-            }
-            // El mensaje ahora muestra la IP y el puerto correctos del .env
-            console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
-        });
-
-    } catch (error) {
-        console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
-        process.exit(1);
-    }
+      console.log(
+        chalk.green.italic(
+          `\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`
+        )
+      );
+    });
+  } catch (error) {
+    console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos:'), error);
+    process.exit(1);
   }
+}
 
 startServer();

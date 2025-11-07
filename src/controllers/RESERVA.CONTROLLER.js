@@ -1,7 +1,7 @@
 import * as reservaService from '../services/reserva.service.js';
 import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
-import { sendEmailWithTemplate } from '../../email.service.js';
+import { sendEmailWithTemplate } from '../services/email.service.js';
 import { getDbPool } from '../config/db.js'; // necesario para consultas extra
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 import { apicacheInstance } from '../config/cache.js';
@@ -38,7 +38,6 @@ export const getReservasDelCliente = async (req, res, next) => {
 export const createReserva = async (req, res, next) => {
   try {
     const nuevaReserva = await reservaService.crearReserva(req.body);
-
     const { reserva_id } = nuevaReserva;
 
     const pool = getDbPool();
@@ -72,7 +71,7 @@ export const createReserva = async (req, res, next) => {
       reserva
     );
 
-    // ---- Nuevo: enviar correo a todos los administradores reales ----
+    // ---- Enviar correo a todos los administradores ----
     try {
       const [admins] = await pool.query(`
         SELECT nombre_usuario AS email FROM usuarios WHERE tipo_usuario = 1 AND activo = 1
@@ -83,13 +82,17 @@ export const createReserva = async (req, res, next) => {
         await sendEmailWithTemplate(
           admin.email,
           asuntoAdmin,
-          'notificacionAdmin',
-          { ...reserva, asunto: asuntoAdmin }
+          'notificacion-admin', // ✅ nombre del archivo MJML corregido
+          { 
+            nombre: `Cliente: ${reserva.nombre} ${reserva.apellido}`,
+            email: `Reserva para el día: ${new Date(reserva.fecha_reserva).toLocaleDateString()}`
+          }
         );
       }
     } catch (adminQueryErr) {
       console.error('[NOTIFICACIÓN] Error obteniendo correos de administradores:', adminQueryErr.message);
     }
+
     apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
   } catch (error) {
@@ -117,7 +120,7 @@ export const deleteReserva = async (req, res, next) => {
   }
 };
 
-//CREO EL CONTROLADOR 
+// Controlador para estadísticas
 export const estadisticasReservas = async (req, res, next) => {
   try {
     const data = await obtenerEstadisticas();
@@ -127,21 +130,20 @@ export const estadisticasReservas = async (req, res, next) => {
   }
 };
 
-//creo endpoint para exportar CSV 
+// Exportar CSV
 export const generarReporteCSV = async (req, res, next) => {
   try {
-    const reservas = await reservaService.obtenerReservasParaCSV(); // devuelve reservas con datos completos
+    const reservas = await reservaService.obtenerReservasParaCSV();
     const path = './docs/reservas.csv';
 
     generarCSVReservas(reservas, path);
-
-    res.download(path); // descarga directa
+    res.download(path);
   } catch (error) {
     next(error);
   }
 };
 
-//creo endpoint para exportar PDF con datos completos
+// Exportar PDF
 export const generarReportePDF = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;

@@ -4,14 +4,22 @@ import ejs from 'ejs';
 import fs from 'fs/promises';
 import path from 'path';
 
+// Log de diagnóstico para verificar que las variables estén cargadas
+console.log('[EMAIL SERVICE] Configuración SMTP:', {
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  user: process.env.EMAIL_USER,
+  pass: process.env.EMAIL_PASS ? '***' : undefined,
+});
+
 /**
  * Configuración del transporter de Nodemailer.
  * Se recomienda usar variables de entorno para las credenciales.
  */
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_PORT === '465', // true para puerto 465, false para otros
+  port: Number(process.env.EMAIL_PORT),
+  secure: Number(process.env.EMAIL_PORT) === 465, // true para puerto 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -28,26 +36,31 @@ const transporter = nodemailer.createTransport({
 export const sendEmailWithTemplate = async (to, subject, templateName, data) => {
   try {
     // 1. Construir la ruta absoluta a la plantilla
-    const templatePath = path.resolve(process.cwd(), `src/templates/emails/${templateName}.mjml`);
+    const templatePath = path.resolve('src/templates/emails', `${templateName}.mjml`);
+    console.log('[EMAIL SERVICE] Ruta de plantilla:', templatePath);
 
-    // 2. Leer el contenido del archivo MJML
+    // 2. Verificar que el archivo exista
+    await fs.access(templatePath);
+
+    // 3. Leer el contenido del archivo MJML
     const mjmlTemplate = await fs.readFile(templatePath, 'utf-8');
 
-    // 3. Renderizar la plantilla con EJS para inyectar los datos dinámicos
+    // 4. Renderizar la plantilla con EJS
     const mjmlWithData = ejs.render(mjmlTemplate, data);
+    console.log('[EMAIL SERVICE] Datos inyectados en plantilla:', data);
 
-    // 4. Compilar el MJML a HTML responsive
+    // 5. Compilar MJML a HTML
     const { html } = mjml(mjmlWithData);
 
-    // 5. Configurar las opciones del correo
+    // 6. Configurar opciones del correo
     const mailOptions = {
       from: `"Tu App de Reservas" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      html, // Usamos el HTML generado
+      html,
     };
 
-    // 6. Enviar el correo
+    // 7. Enviar el correo
     await transporter.sendMail(mailOptions);
     console.log(`[EMAIL SERVICE] Correo enviado a ${to} usando la plantilla ${templateName}.`);
   } catch (error) {

@@ -17,7 +17,7 @@ const hashPassword = async (plainText) => {
 export const getUserByUsername = async (username) => {
   const pool = getDbPool()
   const [rows] = await pool.query(
-    'SELECT usuario_id, nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
+    'SELECT usuario_id, nombre, apellido, nombre_usuario, password, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
     [username]
   )
   return rows.length ? rows[0] : null
@@ -44,7 +44,7 @@ export const verifyPassword = async (plainPassword, hashedPassword, userId) => {
     if (esValida) {
       const nuevoHash = await bcrypt.hash(passwordLimpia, 10)
       await pool.query(
-        `UPDATE usuarios SET contrasenia = ? WHERE usuario_id = ?`,
+        `UPDATE usuarios SET password = ? WHERE usuario_id = ?`,
         [nuevoHash, userId]
       )
       console.log(`Usuario ${userId} migrado de MD5 a bcrypt`)
@@ -84,11 +84,26 @@ export const getUserById = async (id) => {
 // ===============================================================
 export const createUser = async (data) => {
   const pool = getDbPool()
-  const hash = await hashPassword(data.contrasenia)
+
+  // Acepta tanto "password" como "contrasenia" por compatibilidad
+  const passwordPlano = data.password || data.contrasenia
+  if (!passwordPlano) {
+    throw new Error('El campo password es obligatorio')
+  }
+
+  const hash = await hashPassword(passwordPlano)
   const [result] = await pool.query(
-    `INSERT INTO usuarios (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto)
+    `INSERT INTO usuarios (nombre, apellido, nombre_usuario, password, tipo_usuario, celular, foto)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [data.nombre, data.apellido, data.nombre_usuario, hash, data.tipo_usuario, data.celular, data.foto]
+    [
+      data.nombre,
+      data.apellido,
+      data.nombre_usuario || data.email,
+      hash,
+      data.tipo_usuario || 3, // cliente por defecto
+      data.celular || null,
+      data.foto || null
+    ]
   )
   return { usuario_id: result.insertId }
 }
@@ -100,8 +115,8 @@ export const updateUser = async (id, data) => {
   const pool = getDbPool()
   const updateData = { ...data }
 
-  if (data.contrasenia) {
-    updateData.contrasenia = await hashPassword(data.contrasenia)
+  if (data.password) {
+    updateData.password = await hashPassword(data.password)
   }
 
   await pool.query('UPDATE usuarios SET ? WHERE usuario_id = ?', [updateData, id])
