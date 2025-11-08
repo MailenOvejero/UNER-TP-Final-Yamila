@@ -88,8 +88,10 @@ app.use((req, res, next) => {
   const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
   const isSwagger = req.originalUrl.includes('/docs') || req.originalUrl.includes('/api-docs');
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
-  const isRegister = req.originalUrl.includes('/api/auth/register/client') && req.method === 'POST';
+  const isRegister = req.path === '/api/auth/register/client' && req.method === 'POST';
 
+
+  
   // Excepciones: Login, Swagger, test-email y registro de cliente
   if (isLogin || isSwagger || isTestEmail || isRegister) {
     return next();
