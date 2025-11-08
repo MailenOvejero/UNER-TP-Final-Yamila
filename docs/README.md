@@ -63,6 +63,7 @@ El sistema está construido sobre una arquitectura de servicios moderna y con un
 *   **Gestión de Entidades (BREAD):** La API implementa las operaciones BREAD (Browse, Read, Edit, Add, Delete) para las entidades principales del sistema. La eliminación de registros se realiza mediante borrado lógico (Soft Delete).
 *   **Autenticación y Autorización por Roles:** Utiliza JSON Web Tokens (JWT) para proteger las rutas. El acceso a los recursos está restringido según tres roles de usuario:
     *   **ADMIN (1):** Acceso total al sistema.
+    *   **Registro de Clientes:** Expone un endpoint público (`POST /api/auth/register/client`) que permite a los nuevos usuarios registrarse de forma autónoma con el rol de `CLIENTE`.
     *   **EMPLEADO (2):** Permisos para gestionar entidades de negocio como salones y turnos.
     *   **CLIENTE (3):** Acceso limitado para crear y consultar sus propias reservas.
 *   **Generación de Reportes:**
