@@ -323,3 +323,33 @@ UPDATE usuarios SET password = '$2b$10$ZzXxCcVvBbNnMmLlKkJjZzXxCcVvBbNnMmLlKkJjZ
 UPDATE usuarios SET password = '$2b$10$AaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFf' WHERE nombre_usuario = 'anaflo@correo.com';
 
 contraseñas bcrypt
+
+
+
+
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'alblop@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'pamgom@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'estcir@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'oscram@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'clajua@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'wilcor@correo.com';
+UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'anaflo@correo.com';
+
+
+
+------
+PARA GENERAR EL NUEVO HASH: 
+1 - node
+2 - require('bcrypt').hash('123456', 10).then(console.log);
+
+RESPUESTA EN CONSOLA : 
+ <pending>, [Symbol(async_id_symbol)]: 50, [Symbol(trigger_async_id_symbol)]: 48 } > $2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm
+
+ Y ACTUALICÉ LA BASE CON ESTO: 
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'alblop@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'pamgom@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'estcir@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'oscram@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'clajua@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'wilcor@correo.com';
+UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'anaflo@correo.com';

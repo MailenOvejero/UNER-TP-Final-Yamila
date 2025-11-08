@@ -1,7 +1,11 @@
+// ===============================
+// 📁 src/controllers/auth.controller.js
+// ===============================
+
 import jwt from 'jsonwebtoken';
-import { buscarUsuarioPorEmail, validarPassword, registerClient } from '../services/usuario.service.js'; // ⬅️ MODIFICADO: Agrego registerClient
+import { buscarUsuarioPorEmail, validarPassword, registerClient } from '../services/usuario.service.js';
 import { ROLES } from '../config/roles.js';
-import { validationResult } from 'express-validator'; // NUEVO: Para manejar validación de Express
+import { validationResult } from 'express-validator';
 
 /*
  * Genera un token JWT para el usuario autenticado.
@@ -13,9 +17,8 @@ const generateToken = (user) => {
         role: user.tipo_usuario
     };
 
-    // Genera el token usando la clave secreta y la expiración de .env
     return jwt.sign(payload, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || '1h' // Asume JWT_EXPIRES_IN en .env
+        expiresIn: process.env.JWT_EXPIRES_IN || '1h'
     });
 };
 
@@ -23,13 +26,12 @@ const generateToken = (user) => {
  * Controlador para la ruta POST /api/auth/login
  */
 export const login = async (req, res, next) => {
-
-    // **********************************************************
-    //  COMPROBACIÓN INICIAL (400 Bad Request)
-    // **********************************************************
     const { nombre_usuario, password, contrasenia } = req.body;
-    const passwordIngresada = password || contrasenia;
+    const passwordIngresada = (password || contrasenia)?.trim();
 
+    // ==============================
+    // 🧱 1. Validación inicial
+    // ==============================
     if (!nombre_usuario || !passwordIngresada) {
         const error = new Error('Faltan credenciales (usuario o contraseña).');
         error.status = 400;
@@ -37,31 +39,49 @@ export const login = async (req, res, next) => {
     }
 
     try {
-        //  Buscar usuario
+        // ==============================
+        // 🔍 2. Buscar usuario en la BD
+        // ==============================
         const user = await buscarUsuarioPorEmail(nombre_usuario);
 
-        console.log('Usuario encontrado:', user);
-
-        // FIX DE LOGIN: Usamos user.hashedPassword (del alias en la BD) y validamos que exista.
-        const userHashedPassword = user ? user.hashedPassword : null;
-
-        //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && userHashedPassword && await validarPassword(passwordIngresada, userHashedPassword, user.usuario_id);
-
-        // Si NO hay usuario O la contraseña es inválida:
-        if (!isPasswordValid) {
-            const error = new Error('Credenciales inválidas.'); // CREAR Error con un mensaje
-            error.status = 401; // Asigna el N° de error
-            return next(error); // va al handler
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        //  Generar Token
+        // Aseguramos obtener correctamente el hash
+        const userHashedPassword = user.hashedPassword?.trim();
+
+        if (!userHashedPassword) {
+            return res.status(400).json({ error: 'El usuario no tiene una contraseña registrada' });
+        }
+
+
+        // ==============================
+        // 🔐 3. Comparar contraseñas
+        // ==============================
+        console.log('🧩 Comparando contraseña...');
+        console.log('Ingresada:', passwordIngresada);
+        console.log('Hash DB:', userHashedPassword);
+
+        const isPasswordValid = await validarPassword(passwordIngresada, userHashedPassword, user.usuario_id);
+
+        if (!isPasswordValid) {
+            console.log('❌ Contraseña incorrecta');
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        console.log('✅ Contraseña correcta');
+
+        // ==============================
+        // 🎟️ 4. Generar Token JWT
+        // ==============================
         const token = generateToken(user);
 
-        // Determinar el nombre del rol para la respuesta
         const roleName = Object.entries(ROLES).find(([_, value]) => value === user.tipo_usuario)?.[0];
 
-        //  Respuesta exitosa con Token
+        // ==============================
+        // 📤 5. Enviar respuesta exitosa
+        // ==============================
         res.status(200).json({
             status: 'success',
             message: 'Autenticación exitosa',
@@ -74,7 +94,6 @@ export const login = async (req, res, next) => {
         });
 
     } catch (error) {
-        // Los errores de base de datos o internos son atrapados aquí y enviados al errorHandler.
         next(error);
     }
 };
@@ -82,38 +101,32 @@ export const login = async (req, res, next) => {
 // ===============================================================
 // NUEVO CONTROLADOR: Registro de Cliente
 // ===============================================================
-
-/**
- * Controlador para la ruta POST /api/auth/registro/cliente
- */
 export const registerClientController = async (req, res, next) => {
-    // 1. Verificar errores de express-validator
+    // 1️⃣ Verificar errores de validación
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const validationError = new Error('Datos de registro inválidos.');
-        validationError.status = 400; // Bad Request
+        validationError.status = 400;
         validationError.details = errors.array();
         return next(validationError);
     }
-    
-    // El servicio esperará los datos necesarios (nombre, apellido, nombre_usuario, contrasenia, celular, foto)
-    try {
-        // 2. Llamar a la lógica de negocio (el service se encarga de asignar el rol 3)
-        const newClient = await registerClient(req.body); 
 
-        // 3. Respuesta de éxito
+    try {
+        // 2️⃣ Registrar cliente (rol 3)
+        const newClient = await registerClient(req.body);
+
+        // 3️⃣ Respuesta
         res.status(201).json({
             status: 'success',
             message: 'Cliente registrado exitosamente.',
             user: {
                 id: newClient.usuario_id,
                 nombre_usuario: req.body.nombre_usuario,
-                role: 'CLIENTE' // Información clara del rol asignado
+                role: 'CLIENTE'
             }
         });
 
     } catch (error) {
-        // 4. Pasar errores de negocio (ej. email ya existe 409) al handler centralizado
-        next(error); 
+        next(error);
     }
 };

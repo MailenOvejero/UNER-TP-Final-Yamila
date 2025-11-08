@@ -20,7 +20,7 @@ export const getSalones = async (req, res, next) => {
 
     try {
         //  Llamar al servicio
-        const salones = await salonService.getAllSalones({ limit, offset, order, asc });
+        const salones = await salonService.listarSalones({ limit, offset, order, asc });
 
         //  Respuesta exitosa
         res.status(200).json({
@@ -50,7 +50,7 @@ export const getSalon = async (req, res, next) => {
 
     try {
         //  Llamar al servicio
-        const salon = await salonService.getSalonById(salonId); 
+        const salon = await salonService.obtenerSalon(salonId); 
 
         //  Manejo de 404 Not Found (si no existe o está inactivo)
         if (!salon) {
@@ -87,7 +87,7 @@ export const createSalon = async (req, res, next) => {
 
     try {
         //  Llamar al servicio
-        const newSalonId = await salonService.createSalon(req.body);
+        const newSalonId = await salonService.crearSalon(req.body);
         apicacheInstance.clear();
         // Respuesta exitosa
         res.status(201).json({
@@ -133,7 +133,7 @@ export const updateSalon = async (req, res, next) => {
 
     try {
         //  Llamar al servicio
-        const affectedRows = await salonService.updateSalon(salonId, req.body);
+        const affectedRows = await salonService.actualizarSalon(salonId, req.body);
         
         //  Manejo de 404
         if (affectedRows === 0) {
@@ -169,7 +169,7 @@ export const deleteSalon = async (req, res, next) => {
 
     try {
         //  Llamar al servicio para realizar soft delete
-        const affectedRows = await salonService.deleteSalon(salonId); 
+        const affectedRows = await salonService.eliminarSalon(salonId); 
 
         // Manejo de 404
         if (affectedRows === 0) {

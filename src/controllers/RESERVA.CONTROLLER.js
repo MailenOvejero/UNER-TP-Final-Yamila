@@ -45,18 +45,14 @@ const createReservaConComprobante = async (req, res, next) => {
 
     // 2. Validación: el comprobante debe ser obligatorio
     if (!rutaComprobante) {
-      // Si no hay archivo subido, Multer no lo guardó o no se envió el campo 'comprobante'
       return res.status(400).json({ error: 'El comprobante de pago es obligatorio.' });
     }
 
     // 3. Parseo de datos de texto. En multipart/form-data, todos los campos llegan como string.
     const datosReserva = {
       ...req.body,
-      // Convertir 'servicios' de JSON string a objeto/array
       servicios: req.body.servicios ? JSON.parse(req.body.servicios) : [],
-      // Convertir 'importe_salon' a número
       importe_salon: req.body.importe_salon ? Number(req.body.importe_salon) : 0,
-      // Añadir la ruta del comprobante
       ruta_comprobante: rutaComprobante,
     };
     
@@ -138,7 +134,6 @@ const createReservaConComprobante = async (req, res, next) => {
 // ----------------------------------------------------
 // FIN FUNCIÓN MODIFICADA
 // ----------------------------------------------------
-
 
 export const updateReserva = async (req, res, next) => {
   try {
@@ -225,7 +220,7 @@ export const generarReportePDF = async (req, res, next) => {
     const reservaCompleta = {
       cliente: cliente.cliente,
       salon: salon.titulo,
-      turno: `${turno.hora_desde} a ${turno.hasta}`,
+      turno: `${turno.hora_desde} a ${turno.hora_hasta}`,
       fecha_reserva: reserva.fecha_reserva,
       tematica: reserva.tematica,
       importe_total: reserva.importe_total,
@@ -236,6 +231,73 @@ export const generarReportePDF = async (req, res, next) => {
     await generarPDFReserva(reservaCompleta, path);
 
     res.download(path);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ====================================================
+// 📦 NUEVOS ENDPOINTS PROFESIONALES PARA DESCARGAR CSV
+// ====================================================
+
+// Descargar todas las reservas en CSV
+export const descargarCSVReservas = async (req, res, next) => {
+  try {
+    const reservas = await reservaService.obtenerReservasParaCSV();
+
+    if (!reservas || reservas.length === 0) {
+      return res.status(404).json({ message: 'No hay reservas registradas.' });
+    }
+
+    // Convertir el array en texto CSV
+    let csv = '"reserva_id","cliente","salon","turno","fecha_reserva","importe_total"\n';
+    reservas.forEach(r => {
+      csv += `${r.reserva_id},"${r.cliente}","${r.salon}","${r.turno}","${r.fecha_reserva}","${r.importe_total}"\n`;
+    });
+
+    // Headers para forzar descarga
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="reservas.csv"');
+    res.status(200).send(csv);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Descargar una sola reserva por ID en CSV
+export const descargarCSVReservaPorId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const reserva = await reservaService.obtenerReserva(id);
+
+    if (!reserva) {
+      return res.status(404).json({ message: 'Reserva no encontrada.' });
+    }
+
+    // Consultar info completa para el CSV
+    const pool = getDbPool();
+    const [[info]] = await pool.query(`
+      SELECT 
+        r.reserva_id,
+        CONCAT(u.nombre, ' ', u.apellido) AS cliente,
+        s.titulo AS salon,
+        CONCAT(t.hora_desde, ' a ', t.hora_hasta) AS turno,
+        r.fecha_reserva,
+        r.importe_total
+      FROM reservas r
+      JOIN usuarios u ON r.usuario_id = u.usuario_id
+      JOIN salones s ON r.salon_id = s.salon_id
+      JOIN turnos t ON r.turno_id = t.turno_id
+      WHERE r.reserva_id = ?
+    `, [id]);
+
+    // Crear CSV simple con encabezados
+    const csv = `"reserva_id","cliente","salon","turno","fecha_reserva","importe_total"\n` +
+                `${info.reserva_id},"${info.cliente}","${info.salon}","${info.turno}","${info.fecha_reserva}","${info.importe_total}"`;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="reserva_${id}.csv"`);
+    res.status(200).send(csv);
   } catch (error) {
     next(error);
   }

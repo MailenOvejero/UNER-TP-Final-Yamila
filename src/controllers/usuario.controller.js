@@ -14,7 +14,7 @@ export const getUsuarios = async (req, res, next) => {
 
 export const getUsuarioById = async (req, res, next) => {
   try {
-    const usuario = await usuarioService.getById(req.params.id);
+    const usuario = await usuarioService.getUsuarioByIdService(req.params.id);
     if (!usuario) throw new Error('Usuario no encontrado');
     res.status(200).json(usuario);
   } catch (error) {
@@ -26,7 +26,9 @@ export const createUsuario = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
-    const nuevo = await usuarioService.create(req.body);
+    //const nuevo = await usuarioService.create(req.body);
+    const nuevo = await usuarioService.registerClient(req.body);
+
     apicacheInstance.clear();
     res.status(201).json(nuevo);
   } catch (error) {

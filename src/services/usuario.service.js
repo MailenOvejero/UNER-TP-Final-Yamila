@@ -1,11 +1,14 @@
 // /src/services/usuario.service.js
 
-import { 
+import {
     getAllUsuarios, // NUEVO: Importar la función para obtener todos los usuarios
     obtenerEmailsAdministradores,
     getUserByUsername,
     verifyPassword,
-    createUsuario // NUEVO: Importar la función de creación
+    createUsuario,
+    softDeleteUsuario,
+    updateUsuario,
+    getUsuarioById
 } from '../data/usuario.data.js';
 
 import { ROLES } from '../config/roles.js'; // NUEVO: Importar los roles (para asignar el 3)
@@ -28,7 +31,7 @@ export const getAll = async () => {
  * Busca un usuario activo por su nombre de usuario (email).
  */
 export const buscarUsuarioPorEmail = async (email) => {
-    return await getUserByUsername(email); 
+    return await getUserByUsername(email);
 }
 
 /**
@@ -52,7 +55,6 @@ export const validarPassword = async (passwordPlana, userHashedPassword, userId)
 export const obtenerEmailsAdmins = async () => {
     return await obtenerEmailsAdministradores();
 }
-
 
 // ===============================================================
 // NUEVA FUNCIÓN: Registro de Cliente
@@ -82,4 +84,27 @@ export const registerClient = async (userData) => {
     // 3. Delegar la creación a la capa de datos (que se encarga del hashing)
     const newClient = await createUsuario(clientData);
     return newClient; // Retorna { usuario_id: insertId }
+};
+
+// ===============================================================
+// NUEVA FUNCIÓN: Obtener usuario por ID (para controller)
+// ===============================================================
+
+export const getUsuarioByIdService = async (id) => {
+    return await getUsuarioById(id);
+};
+
+// ===============================================================
+// Actualizar usuario (para controller)
+// ===============================================================
+export const update = async (id, data) => {
+    // Llama a la función de la capa de datos
+    return await updateUsuario(id, data);
+};
+
+// ===============================================================
+// Baja lógica (desactivar usuario) (para controller)
+// ===============================================================
+export const softDelete = async (id) => {
+    return await softDeleteUsuario(id);
 };

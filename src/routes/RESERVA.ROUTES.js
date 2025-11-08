@@ -3,13 +3,13 @@ import {
   getReservas,
   getReservaById,
   getReservasDelCliente,
-  // Usamos el alias para la versión del controlador que maneja Multer
   createReserva as createReservaConComprobante, 
   updateReserva,
   deleteReserva,
   estadisticasReservas,
   generarReportePDF,
-  generarReporteCSV
+  descargarCSVReservas,        
+  descargarCSVReservaPorId 
 } from '../controllers/RESERVA.CONTROLLER.js';
 
 import {
@@ -21,44 +21,176 @@ import { verifyToken, authorize } from '../middlewares/auth.middleware.js';
 import { ROLES } from '../config/roles.js';
 import { cacheMiddleware } from '../config/cache.js';
 
-// Importar la instancia de Multer configurada
+// Instancia Multer para comprobantes
 import { uploadComprobante } from '../middlewares/upload.middleware.js'; 
-
 
 const router = Router();
 
-// Middleware de autenticación aplicado a todas las rutas de reservas
+// Middleware de autenticación aplicado a todas las rutas
 router.use(verifyToken);
 
-// Rutas para clientes
-router.get('/mis-reservas', authorize([ROLES.CLIENTE]), cacheMiddleware(), getReservasDelCliente);
-
-// Rutas para administradores y empleados
-router.get('/', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservas);
-
-// Ruta para que un cliente cree una reserva (incluye subida de archivo)
-router.post(
-    '/', 
-    authorize([ROLES.CLIENTE]), 
-    createReservaValidation,
-    // Aplica Multer justo antes del controlador
-    uploadComprobante.single('comprobante'), 
-    createReservaConComprobante
+// ============================================================
+// RUTAS PARA CLIENTES
+// ============================================================
+router.get(
+  '/mis-reservas',
+  authorize([ROLES.CLIENTE]),
+  cacheMiddleware(),
+  getReservasDelCliente
 );
 
-// Rutas específicas por ID
-router.get('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservaById);
+// ============================================================
+// RUTAS PARA ADMINISTRADORES Y EMPLEADOS
+// ============================================================
+router.get(
+  '/',
+  authorize([ROLES.ADMIN, ROLES.EMPLEADO]),
+  cacheMiddleware(),
+  getReservas
+);
 
-router.put('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), updateReservaValidation, updateReserva);
+// ============================================================
+// CREAR RESERVA (CLIENTE CON COMPROBANTE)
+// ============================================================
+router.post(
+  '/',
+  authorize([ROLES.CLIENTE]),
+  createReservaValidation,
+  uploadComprobante.single('comprobante'),
+  createReservaConComprobante
+);
 
-// Rutas solo para administradores
-router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
+// ============================================================
+// RUTAS DE REPORTES Y ESTADÍSTICAS (ADMIN)
+// ============================================================
+router.get(
+  '/estadisticas',
+  authorize([ROLES.ADMIN]),
+  cacheMiddleware(),
+  estadisticasReservas
+);
 
-// Rutas de reportes y estadísticas (solo admin)
-router.get('/estadisticas', authorize([ROLES.ADMIN]), cacheMiddleware(), estadisticasReservas);
+/**
+ * @swagger
+ * /reservas/csv:
+ *   get:
+ *     summary: Descarga todas las reservas en CSV
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: CSV generado y descargado
+ *       404:
+ *         description: No hay reservas
+ *       500:
+ *         description: Error interno
+ */
+router.get('/csv', authorize([ROLES.ADMIN]), descargarCSVReservas);
 
+/**
+ * @swagger
+ * /reservas/{id}/csv:
+ *   get:
+ *     summary: Descarga CSV de una sola reserva
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: CSV de la reserva
+ *       404:
+ *         description: Reserva no encontrada
+ *       500:
+ *         description: Error interno
+ */
+router.get('/:id/csv', authorize([ROLES.ADMIN]), descargarCSVReservaPorId);
+
+/**
+ * @swagger
+ * /reservas/{id}/pdf:
+ *   get:
+ *     summary: Descarga PDF de una reserva
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: PDF generado y descargado
+ *       404:
+ *         description: Reserva no encontrada
+ *       500:
+ *         description: Error interno
+ */
 router.get('/:id/pdf', authorize([ROLES.ADMIN]), generarReportePDF);
 
-router.get('/csv', authorize([ROLES.ADMIN]), generarReporteCSV);
+// ============================================================
+// RUTAS ESPECÍFICAS POR ID
+// ============================================================
+
+
+router.get('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservaById);
+/**
+ * @swagger
+ * /usuarios/{id}:
+ *   put:
+ *     summary: Modificar usuario
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               apellido:
+ *                 type: string
+ *               nombre_usuario:
+ *                 type: string
+ *               celular:
+ *                 type: string
+ *               tipo_usuario:
+ *                 type: integer
+ *             example:
+ *               nombre: Juan
+ *               apellido: Pérez
+ *               nombre_usuario: juanp
+ *               celular: "1122334455"
+ *               tipo_usuario: 2
+ *     responses:
+ *       200:
+ *         description: Usuario modificado correctamente
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.put('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), updateReservaValidation, updateReserva);
+router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
 
 export default router;

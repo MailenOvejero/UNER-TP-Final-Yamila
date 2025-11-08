@@ -2,21 +2,22 @@ import * as servicioService from '../services/servicio.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
 
-
+// Listar todos los servicios
 export const getServicios = async (req, res, next) => {
   try {
-    const servicios = await servicioService.getAllServicios();
+    const servicios = await servicioService.listarServicios(); // ← cambio aquí
     res.status(200).json({ status: 'success', data: servicios });
   } catch (error) {
     next(error);
   }
 };
 
+// Obtener un servicio por ID
 export const getServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
   try {
-    const servicio = await servicioService.getServicioById(id);
+    const servicio = await servicioService.obtenerServicio(id); // ← cambio aquí
     if (!servicio) return next(new Error('Servicio no encontrado'));
     res.status(200).json({ status: 'success', data: servicio });
   } catch (error) {
@@ -24,11 +25,12 @@ export const getServicio = async (req, res, next) => {
   }
 };
 
+// Crear un servicio
 export const createServicio = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
-    const id = await servicioService.createServicio(req.body);
+    const id = await servicioService.crearServicio(req.body); // ← cambio aquí
     apicacheInstance.clear();
     res.status(201).json({ status: 'success', servicio_id: id });
   } catch (error) {
@@ -36,13 +38,14 @@ export const createServicio = async (req, res, next) => {
   }
 };
 
+// Actualizar un servicio
 export const updateServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
   try {
-    const updated = await servicioService.updateServicio(id, req.body);
+    const updated = await servicioService.actualizarServicio(id, req.body); // ← cambio aquí
     if (updated === 0) return next(new Error('No se pudo actualizar'));
     apicacheInstance.clear();
     res.status(200).json({ status: 'success', message: 'Servicio actualizado' });
@@ -51,11 +54,12 @@ export const updateServicio = async (req, res, next) => {
   }
 };
 
+// Eliminar un servicio (soft delete)
 export const deleteServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
   try {
-    const deleted = await servicioService.deleteServicio(id);
+    const deleted = await servicioService.eliminarServicio(id); // ← cambio aquí
     if (deleted === 0) return next(new Error('No se pudo desactivar'));
     apicacheInstance.clear();
     res.status(200).json({ status: 'success', message: 'Servicio desactivado' });
@@ -64,9 +68,7 @@ export const deleteServicio = async (req, res, next) => {
   }
 };
 
-
-
-//creo endpoint para generar pdf
+// Endpoint para generar PDF (sin cambios)
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 
 export const generarReportePDF = async (req, res, next) => {

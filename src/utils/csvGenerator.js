@@ -10,7 +10,6 @@ export const generarCSVReservas = (reservas, path) => {
     'salon',
     'turno',
     'fecha_reserva',
-    'tematica',
     'importe_total'
   ];
 
