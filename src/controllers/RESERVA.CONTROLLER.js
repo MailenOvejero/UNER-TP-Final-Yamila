@@ -305,3 +305,58 @@ export const descargarCSVReservaPorId = async (req, res, next) => {
 
 // Se exporta la función original como alias para que RESERVA.ROUTES.js pueda usarla
 export { createReservaConComprobante as createReserva };
+
+// ----------------- COMENTARIOS -----------------
+export const agregarComentario = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const usuario_id = req.user.id; // viene del verifyToken
+    const { comentario } = req.body;
+
+    if (!comentario || comentario.trim() === '') {
+      return res.status(400).json({ message: 'El comentario no puede estar vacío' });
+    }
+
+    const nuevo = await reservaService.agregarComentario({ reserva_id, usuario_id, comentario });
+    // limpiar cache si corresponde
+    apicacheInstance.clear();
+    res.status(201).json({ message: 'Comentario agregado', comentario_id: nuevo.comentario_id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listarComentarios = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const comentarios = await reservaService.listarComentarios(reserva_id);
+    res.status(200).json(comentarios);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ----------------- ENCUESTAS -----------------
+export const agregarEncuesta = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const usuario_id = req.user.id;
+    const { puntuacion, comentarios } = req.body;
+
+    const nueva = await reservaService.agregarEncuesta({ reserva_id, usuario_id, puntuacion, comentarios });
+    apicacheInstance.clear();
+    res.status(201).json({ message: 'Encuesta guardada', encuesta_id: nueva.encuesta_id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listarEncuestas = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const encuestas = await reservaService.listarEncuestas(reserva_id);
+    res.status(200).json(encuestas);
+  } catch (error) {
+    next(error);
+  }
+};

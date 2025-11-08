@@ -9,8 +9,13 @@ import {
   estadisticasReservas,
   generarReportePDF,
   descargarCSVReservas,
-  descargarCSVReservaPorId
+  descargarCSVReservaPorId,
+  agregarComentario,
+  listarComentarios,
+  agregarEncuesta,
+  listarEncuestas
 } from '../controllers/RESERVA.CONTROLLER.js';
+
 
 import {
   createReservaValidation,
@@ -256,6 +261,121 @@ router.get('/:id/pdf', authorize([ROLES.ADMIN]), generarReportePDF);
  *         description: Error interno
  */
 router.get('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), cacheMiddleware(), getReservaById);
+/**
+ * @swagger
+ * /reservas/{id}/comentarios:
+ *   post:
+ *     summary: Agregar un comentario/observación a una reserva (admin/empleado)
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               comentario:
+ *                 type: string
+ *                 example: "Pago 50% recibido. Cliente avisado."
+ *     responses:
+ *       201:
+ *         description: Comentario agregado
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Reserva no encontrada
+ */
+router.post('/:id/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), agregarComentario);
+
+/**
+ * @swagger
+ * /reservas/{id}/comentarios:
+ *   get:
+ *     summary: Listar comentarios de una reserva (admin/empleado)
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de comentarios
+ *       404:
+ *         description: Reserva no encontrada
+ */
+router.get('/:id/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarComentarios);
+
+/**
+ * @swagger
+ * /reservas/{id}/encuesta:
+ *   post:
+ *     summary: Enviar encuesta de satisfacción (solo cliente dueño, después de la fecha)
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               puntuacion:
+ *                 type: integer
+ *                 example: 5
+ *               comentarios:
+ *                 type: string
+ *                 example: "Todo excelente, volvería!"
+ *     responses:
+ *       201:
+ *         description: Encuesta guardada
+ *       400:
+ *         description: Datos inválidos
+ *       403:
+ *         description: No autorizado
+ */
+router.post('/:id/encuesta', authorize([ROLES.CLIENTE]), agregarEncuesta);
+
+/**
+ * @swagger
+ * /reservas/{id}/encuestas:
+ *   get:
+ *     summary: Listar encuestas de una reserva (admin/empleado)
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de encuestas
+ *       404:
+ *         description: Reserva no encontrada
+ */
+router.get('/:id/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarEncuestas);
+
 
 /**
  * @swagger

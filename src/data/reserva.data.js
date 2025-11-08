@@ -115,3 +115,60 @@ export const getReservasCSV = async () => {
   `);
   return rows;
 };
+
+// ----------------- COMENTARIOS -----------------
+export const createComentario = async ({ reserva_id, usuario_id, comentario }) => {
+  const pool = getDbPool();
+  const [result] = await pool.query(
+    `INSERT INTO comentarios (reserva_id, usuario_id, comentario) VALUES (?, ?, ?)`,
+    [reserva_id, usuario_id, comentario]
+  );
+  return { comentario_id: result.insertId };
+};
+
+export const getComentariosByReserva = async (reserva_id) => {
+  const pool = getDbPool();
+  const [rows] = await pool.query(
+    `SELECT c.comentario_id, c.reserva_id, c.usuario_id, c.comentario, c.creado,
+            u.nombre, u.apellido, u.nombre_usuario AS email
+     FROM comentarios c
+     JOIN usuarios u ON c.usuario_id = u.usuario_id
+     WHERE c.reserva_id = ?
+     ORDER BY c.creado DESC`,
+    [reserva_id]
+  );
+  return rows;
+};
+
+// ----------------- ENCUESTAS -----------------
+export const createEncuesta = async ({ reserva_id, usuario_id, puntuacion, comentarios }) => {
+  const pool = getDbPool();
+  const [result] = await pool.query(
+    `INSERT INTO encuestas (reserva_id, usuario_id, puntuacion, comentarios) VALUES (?, ?, ?, ?)`,
+    [reserva_id, usuario_id, puntuacion, comentarios || null]
+  );
+  return { encuesta_id: result.insertId };
+};
+
+export const getEncuestasByReserva = async (reserva_id) => {
+  const pool = getDbPool();
+  const [rows] = await pool.query(
+    `SELECT e.encuesta_id, e.reserva_id, e.usuario_id, e.puntuacion, e.comentarios, e.creado,
+            u.nombre, u.apellido
+     FROM encuestas e
+     JOIN usuarios u ON e.usuario_id = u.usuario_id
+     WHERE e.reserva_id = ?
+     ORDER BY e.creado DESC`,
+    [reserva_id]
+  );
+  return rows;
+};
+
+export const getEncuestaByReservaAndUser = async (reserva_id, usuario_id) => {
+  const pool = getDbPool();
+  const [rows] = await pool.query(
+    `SELECT * FROM encuestas WHERE reserva_id = ? AND usuario_id = ? LIMIT 1`,
+    [reserva_id, usuario_id]
+  );
+  return rows[0];
+};
