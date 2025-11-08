@@ -88,15 +88,16 @@ app.use((req, res, next) => {
   const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
   const isSwagger = req.originalUrl.includes('/docs');
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
+  // NUEVA EXCEPCIÓN: Registrar Cliente
+  const isRegister = req.originalUrl.includes('/api/auth/register/client') && req.method === 'POST';
   
-  if (isLogin || isSwagger || isTestEmail) {
-    return next(); // deja pasar login, swagger y test-email sin verificar token
+  // MODIFICAR EL IF para incluir isRegister
+  if (isLogin || isSwagger || isTestEmail || isRegister) {
+    return next(); // deja pasar login, registro, swagger y test-email sin verificar token
   }
 
   verifyToken(req, res, next); // todas las demás rutas sí requieren token
 });
-
-
 
 
 // RUTA CENTRAL DE LA API

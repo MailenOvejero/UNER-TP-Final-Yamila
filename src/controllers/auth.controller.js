@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { buscarUsuarioPorEmail, validarPassword } from '../services/usuario.service.js';
+import { buscarUsuarioPorEmail, validarPassword, registerClient } from '../services/usuario.service.js'; // ⬅️ MODIFICADO: Agrego registerClient
 import { ROLES } from '../config/roles.js';
+import { validationResult } from 'express-validator'; // NUEVO: Para manejar validación de Express
 
 /*
  * Genera un token JWT para el usuario autenticado.
@@ -41,7 +42,7 @@ export const login = async (req, res, next) => {
 
         console.log('Usuario encontrado:', user);
 
-        // ➡️ FIX DE LOGIN: Usamos user.hashedPassword (del alias en la BD) y validamos que exista.
+        // FIX DE LOGIN: Usamos user.hashedPassword (del alias en la BD) y validamos que exista.
         const userHashedPassword = user ? user.hashedPassword : null;
 
         //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
@@ -50,7 +51,7 @@ export const login = async (req, res, next) => {
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {
             const error = new Error('Credenciales inválidas.'); // CREAR Error con un mensaje
-            error.status = 401; // Asigna el N° de error 
+            error.status = 401; // Asigna el N° de error
             return next(error); // va al handler
         }
 
@@ -75,5 +76,44 @@ export const login = async (req, res, next) => {
     } catch (error) {
         // Los errores de base de datos o internos son atrapados aquí y enviados al errorHandler.
         next(error);
+    }
+};
+
+// ===============================================================
+// NUEVO CONTROLADOR: Registro de Cliente
+// ===============================================================
+
+/**
+ * Controlador para la ruta POST /api/auth/register/client
+ */
+export const registerClientController = async (req, res, next) => {
+    // 1. Verificar errores de express-validator
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const validationError = new Error('Datos de registro inválidos.');
+        validationError.status = 400; // Bad Request
+        validationError.details = errors.array();
+        return next(validationError);
+    }
+    
+    // El servicio esperará los datos necesarios (nombre, apellido, nombre_usuario, contrasenia, celular, foto)
+    try {
+        // 2. Llamar a la lógica de negocio (el service se encarga de asignar el rol 3)
+        const newClient = await registerClient(req.body); 
+
+        // 3. Respuesta de éxito
+        res.status(201).json({
+            status: 'success',
+            message: 'Cliente registrado exitosamente.',
+            user: {
+                id: newClient.usuario_id,
+                nombre_usuario: req.body.nombre_usuario,
+                role: 'CLIENTE' // Información clara del rol asignado
+            }
+        });
+
+    } catch (error) {
+        // 4. Pasar errores de negocio (ej. email ya existe 409) al handler centralizado
+        next(error); 
     }
 };
