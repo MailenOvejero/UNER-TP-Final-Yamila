@@ -1,6 +1,7 @@
 // /src/services/usuario.service.js
 
 import { 
+    getAllUsuarios, // NUEVO: Importar la función para obtener todos los usuarios
     obtenerEmailsAdministradores,
     getUserByUsername,
     verifyPassword,
@@ -9,8 +10,15 @@ import {
 
 import { ROLES } from '../config/roles.js'; // NUEVO: Importar los roles (para asignar el 3)
 
-// NOTA: Agregar aquí las funciones CRUD (getAllUsuarios, getUsuarioById, etc.)
-// ... (Otras funciones CRUD) ...
+/**
+ * Servicio para obtener todos los usuarios desde la capa de datos.
+ * @returns {Promise<Array>} Una promesa que resuelve a un array de usuarios.
+ */
+export const getAll = async () => {
+    // Llama a la función de la capa de datos para obtener los usuarios
+    const usuarios = await getAllUsuarios();
+    return usuarios;
+};
 
 // ===============================================================
 // Funciones de Autenticación (Necesarias para auth.controller.js)
