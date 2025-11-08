@@ -89,7 +89,7 @@ app.use((req, res, next) => {
   const isSwagger = req.originalUrl.includes('/docs');
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
   // NUEVA EXCEPCIÓN: Registrar Cliente
-  const isRegister = req.originalUrl.includes('/api/auth/register/client') && req.method === 'POST';
+  const isRegister = req.originalUrl.includes('/api/auth/registro/cliente') && req.method === 'POST';
   
   // MODIFICAR EL IF para incluir isRegister
   if (isLogin || isSwagger || isTestEmail || isRegister) {

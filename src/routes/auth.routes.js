@@ -87,7 +87,7 @@ router.post('/login', login);
  *           description: El nombre de usuario (email) ya está registrado.
  */
 router.post(
-    '/register/client',
+    '/registro/cliente',
     createUsuarioValidation,
     registerClientController
 );

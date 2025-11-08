@@ -84,7 +84,7 @@ export const login = async (req, res, next) => {
 // ===============================================================
 
 /**
- * Controlador para la ruta POST /api/auth/register/client
+ * Controlador para la ruta POST /api/auth/registro/cliente
  */
 export const registerClientController = async (req, res, next) => {
     // 1. Verificar errores de express-validator
