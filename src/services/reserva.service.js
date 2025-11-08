@@ -1,15 +1,18 @@
-// swc/service/RESERVA.SERVICE.JS
 
 import {
   getAllReservas,
   getReservaById,
   getReservasByUsuario,
-  createReserva,
+  createReserva, // Función de la capa de datos
   updateReserva,
   softDeleteReserva,
   getEstadisticasPorMes,
   getReservasCSV
 } from '../data/reserva.data.js';
+
+// También podrías necesitar importar aquí el helper de email si no lo tienes ya en el controlador
+// import { enviarNotificacionReserva, enviarNotificacionAdmin } from '../utils/email.helper.js'; 
+
 
 // Listar todas las reservas activas
 export const listarReservas = async () => {
@@ -26,10 +29,27 @@ export const obtenerReservasDelUsuario = async (usuario_id) => {
   return await getReservasByUsuario(usuario_id);
 };
 
-// Crear una nueva reserva con servicios
+// ----------------------------------------------------------------------
+// FUNCIÓN MODIFICADA: Ahora acepta 'datos', que incluye 'ruta_comprobante'
+// ----------------------------------------------------------------------
+// Crear una nueva reserva con servicios y comprobante
 export const crearReserva = async (datos) => {
-  return await createReserva(datos);
+  // 1. Lógica de Negocio (Aquí iría la verificación de disponibilidad, por ejemplo)
+  // ...
+
+  // 2. Persistencia de datos
+  // 'datos' ya contiene: { fecha_reserva, salon_id, ..., ruta_comprobante }
+  const nuevaReserva = await createReserva(datos); 
+  
+  // NOTA: La lógica de envío de correos y notificaciones se dejó en el controlador 
+  // (`RESERVA.CONTROLLER.js`) porque requiere acceder al `pool` de la BD para 
+  // obtener datos completos y correos de administradores. Si esa lógica solo 
+  // usara los datos iniciales, podría moverse aquí.
+  
+  return nuevaReserva;
 };
+// ----------------------------------------------------------------------
+
 
 // Actualizar una reserva existente
 export const actualizarReserva = async (id, datos) => {

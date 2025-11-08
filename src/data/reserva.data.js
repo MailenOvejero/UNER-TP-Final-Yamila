@@ -28,8 +28,9 @@ export const getReservasByUsuario = async (usuario_id) => {
 // Crear una nueva reserva con servicios asociados
 export const createReserva = async (data) => {
   const {
-    fecha_reserva, salon_id, usuario_id, turno_id,
-    foto_cumpleaniero, tematica, importe_salon, servicios
+    fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, servicios,
+    // Se eliminan 'tematica' y 'foto_cumpleaniero' de la desestructuración
+    ruta_comprobante 
   } = data;
 
   const pool = getDbPool();
@@ -37,10 +38,11 @@ export const createReserva = async (data) => {
   try {
     await conn.beginTransaction();
 
+    // ➡️ CORRECCIÓN: Se eliminan las columnas 'foto_cumpleaniero' y 'tematica' de la consulta INSERT
     const [result] = await conn.query(
-      `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, importe_total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, 0]
+      `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, importe_total, ruta_comprobante)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, 0, ruta_comprobante]
     );
 
     const reserva_id = result.insertId;
@@ -75,7 +77,8 @@ export const createReserva = async (data) => {
 // Actualizar una reserva
 export const updateReserva = async (id, data) => {
   const pool = getDbPool();
-  await pool.query('UPDATE reservas SET ? WHERE reserva_id = ?', [data, id]);
+  // Esta función ya es flexible y manejaría 'ruta_comprobante' si se pasa en el data
+  await pool.query('UPDATE reservas SET ? WHERE reserva_id = ?', [data, id]); 
   return { message: 'Reserva actualizada' };
 };
 
@@ -102,8 +105,8 @@ export const getReservasCSV = async () => {
       s.titulo AS salon,
       t.hora_desde AS turno,
       r.fecha_reserva,
-      r.tematica,
       r.importe_total
+      -- Se elimina r.tematica de la consulta SELECT
     FROM reservas r
     JOIN usuarios u ON r.usuario_id = u.usuario_id
     JOIN salones s ON r.salon_id = s.salon_id

@@ -2,7 +2,7 @@ import * as reservaService from '../services/reserva.service.js';
 import { obtenerEstadisticas } from '../services/reserva.service.js';
 import { generarCSVReservas } from '../utils/csvGenerator.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
-import { getDbPool } from '../config/db.js'; // necesario para consultas extra
+import { getDbPool } from '../config/db.js';
 import { generarPDFReserva } from '../utils/pdfGenerator.js';
 import { apicacheInstance } from '../config/cache.js';
 
@@ -35,9 +35,33 @@ export const getReservasDelCliente = async (req, res, next) => {
   }
 };
 
-export const createReserva = async (req, res, next) => {
+// ----------------------------------------------------
+// FUNCIÓN MODIFICADA PARA MANEJAR COMPROBANTES DE PAGO
+// ----------------------------------------------------
+const createReservaConComprobante = async (req, res, next) => {
   try {
-    const nuevaReserva = await reservaService.crearReserva(req.body);
+    // 1. Manejo del archivo subido por Multer
+    const rutaComprobante = req.file ? req.file.path : null;
+
+    // 2. Validación: el comprobante debe ser obligatorio
+    if (!rutaComprobante) {
+      // Si no hay archivo subido, Multer no lo guardó o no se envió el campo 'comprobante'
+      return res.status(400).json({ error: 'El comprobante de pago es obligatorio.' });
+    }
+
+    // 3. Parseo de datos de texto. En multipart/form-data, todos los campos llegan como string.
+    const datosReserva = {
+      ...req.body,
+      // Convertir 'servicios' de JSON string a objeto/array
+      servicios: req.body.servicios ? JSON.parse(req.body.servicios) : [],
+      // Convertir 'importe_salon' a número
+      importe_salon: req.body.importe_salon ? Number(req.body.importe_salon) : 0,
+      // Añadir la ruta del comprobante
+      ruta_comprobante: rutaComprobante,
+    };
+    
+    // 4. Crear la reserva
+    const nuevaReserva = await reservaService.crearReserva(datosReserva);
 
     const { reserva_id } = nuevaReserva;
 
@@ -70,7 +94,8 @@ export const createReserva = async (req, res, next) => {
       Tu reserva fue confirmada para el día ${reserva.fecha_reserva} en el salón "${reserva.salon}".<br>
       Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>
       Temática: ${reserva.tematica || 'Sin temática'}<br>
-      Importe total: $${reserva.importe_total}<br><br>
+      Importe total: $${reserva.importe_total}<br>
+      ¡Comprobante de pago subido con éxito!<br><br>
       Gracias por confiar en nosotros 🎉
     `;
 
@@ -81,7 +106,7 @@ export const createReserva = async (req, res, next) => {
       mensaje,
     });
 
-    // ---- Nuevo: enviar correo a todos los administradores reales ----
+    // ---- Notificación a administradores ----
     try {
       const [admins] = await pool.query(`
         SELECT nombre_usuario AS email FROM usuarios WHERE tipo_usuario = 1 AND activo = 1
@@ -92,7 +117,7 @@ export const createReserva = async (req, res, next) => {
           await enviarNotificacionReserva({
             destinatario: admin.email,
             asunto: 'Nueva reserva creada',
-            mensaje: `Se ha creado una nueva reserva (ID ${reserva_id}) para el cliente ${reserva.nombre} ${reserva.apellido}.<br>Fecha: ${reserva.fecha_reserva}<br>Salón: ${reserva.salon}<br>Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>Importe total: $${reserva.importe_total}`
+            mensaje: `Se ha creado una nueva reserva (ID ${reserva_id}) para el cliente ${reserva.nombre} ${reserva.apellido}.<br>Fecha: ${reserva.fecha_reserva}<br>Salón: ${reserva.salon}<br>Turno: ${reserva.hora_desde} a ${reserva.hora_hasta}<br>Importe total: $${reserva.importe_total}<br>Comprobante guardado en: ${rutaComprobante}`
           });
           console.log(`[NOTIFICACIÓN] Correo enviado a ${admin.email}`);
         } catch (mailErr) {
@@ -104,17 +129,16 @@ export const createReserva = async (req, res, next) => {
     }
     // ------------------------------------------------
 
-    // notificación automatica simulada
-    const clienteId = req.user.id;
-    console.log(`[NOTIFICACIÓN] Reserva confirmada para el cliente ID ${clienteId}`);
-    console.log(`[NOTIFICACIÓN] Administrador notificado sobre la nueva reserva ID ${reserva_id}`);
-    console.log(`[NOTIFICACIÓN] Correo enviado a ${reserva.email} por reserva ID ${reserva_id}`);
     apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
   } catch (error) {
     next(error);
   }
 };
+// ----------------------------------------------------
+// FIN FUNCIÓN MODIFICADA
+// ----------------------------------------------------
+
 
 export const updateReserva = async (req, res, next) => {
   try {
@@ -149,12 +173,12 @@ export const estadisticasReservas = async (req, res, next) => {
 //creo endpoint para exportar CSV 
 export const generarReporteCSV = async (req, res, next) => {
   try {
-    const reservas = await reservaService.obtenerReservasParaCSV(); // devuelve reservas con datos completos
+    const reservas = await reservaService.obtenerReservasParaCSV();
     const path = './docs/reservas.csv';
 
     generarCSVReservas(reservas, path);
 
-    res.download(path); // descarga directa
+    res.download(path);
   } catch (error) {
     next(error);
   }
@@ -216,3 +240,6 @@ export const generarReportePDF = async (req, res, next) => {
     next(error);
   }
 };
+
+// Se exporta la función original como alias para que RESERVA.ROUTES.js pueda usarla
+export { createReservaConComprobante as createReserva };

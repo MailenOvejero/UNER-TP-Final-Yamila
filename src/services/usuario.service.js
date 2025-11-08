@@ -1,53 +1,43 @@
-// swc/service/usuario.service.js
-import {
-  getUserByUsername,
-  verifyPassword,
-  getAllUsuarios,
-  getUsuarioById,
-  createUsuario,
-  updateUsuario,
-  softDeleteUsuario,
-  obtenerEmailsAdministradores
+// /src/services/usuario.service.js
+
+import { 
+    obtenerEmailsAdministradores,
+    getUserByUsername,
+    verifyPassword 
 } from '../data/usuario.data.js';
 
-// Autenticación: buscar usuario por email
-export const buscarUsuarioPorEmail = async (username) => {
-  return await getUserByUsername(username);
-};
+// NOTA: Agregar aquí las funciones CRUD (getAllUsuarios, getUsuarioById, etc.)
+// ... (Otras funciones CRUD) ...
 
+// ===============================================================
+// Funciones de Autenticación (Necesarias para auth.controller.js)
+// ===============================================================
 
-// Verificación de contraseña (pasamosel ID para migrar)
-export const validarPassword = async (plain, hashed, userId) => {
-  return await verifyPassword(plain, hashed, userId);
-};
+/**
+ * Busca un usuario activo por su nombre de usuario (email).
+ */
+export const buscarUsuarioPorEmail = async (email) => {
+    return await getUserByUsername(email); 
+}
 
+/**
+ * Valida si una contraseña plana coincide con el hash almacenado,
+ * y se encarga de la migración de hash si es necesario.
+ */
+export const validarPassword = async (passwordPlana, userHashedPassword, userId) => {
+    // FIX: Si el hash no existe (ej. el usuario se encontró pero el campo es NULL), 
+    // retorna false inmediatamente para evitar que .startsWith() falle.
+    if (!userHashedPassword) {
+        return false;
+    }
 
-// Listar todos los usuarios activos
-export const listarUsuarios = async () => {
-  return await getAllUsuarios();
-};
+    // Llama a la capa de datos para hacer la comparación (y la migración de hash)
+    return await verifyPassword(passwordPlana, userHashedPassword, userId);
+}
 
-// Obtener usuario por ID
-export const obtenerUsuario = async (id) => {
-  return await getUsuarioById(id);
-};
-
-// Crear nuevo usuario
-export const crearUsuario = async (datos) => {
-  return await createUsuario(datos);
-};
-
-// Actualizar usuario
-export const actualizarUsuario = async (id, datos) => {
-  return await updateUsuario(id, datos);
-};
-
-// Eliminar usuario (soft delete)
-export const eliminarUsuario = async (id) => {
-  return await softDeleteUsuario(id);
-};
-
-// Obtener emails de administradores activos
+/**
+ * Obtiene los emails de todos los usuarios administradores activos.
+ */
 export const obtenerEmailsAdmins = async () => {
-  return await obtenerEmailsAdministradores();
-};
+    return await obtenerEmailsAdministradores();
+}

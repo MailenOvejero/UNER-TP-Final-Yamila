@@ -41,8 +41,11 @@ export const login = async (req, res, next) => {
 
         console.log('Usuario encontrado:', user);
 
+        // ➡️ FIX DE LOGIN: Usamos user.hashedPassword (del alias en la BD) y validamos que exista.
+        const userHashedPassword = user ? user.hashedPassword : null;
+
         //  Verificar usuario y contraseña en una sola condición (401 Unauthorized)
-        const isPasswordValid = user && await validarPassword(passwordIngresada, user.password, user.usuario_id);
+        const isPasswordValid = user && userHashedPassword && await validarPassword(passwordIngresada, userHashedPassword, user.usuario_id);
 
         // Si NO hay usuario O la contraseña es inválida:
         if (!isPasswordValid) {
@@ -55,9 +58,6 @@ export const login = async (req, res, next) => {
         const token = generateToken(user);
 
         // Determinar el nombre del rol para la respuesta
-        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        // comento para probar reservas en postman y modifico el codigo al igual que hice en roles.js
-        // const roleName = Object.keys(ROLES).find(key => ROLES[key] === user.tipo_usuario);
         const roleName = Object.entries(ROLES).find(([_, value]) => value === user.tipo_usuario)?.[0];
 
         //  Respuesta exitosa con Token
