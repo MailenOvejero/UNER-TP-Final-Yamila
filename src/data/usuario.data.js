@@ -17,8 +17,9 @@ const hashPassword = async (plainText) => {
 export const getUserByUsername = async (username) => {
   const pool = getDbPool()
   const [rows] = await pool.query(
-    // ➡️ FIX DE LOGIN: Alias 'contrasenia' AS 'hashedPassword'
-    'SELECT usuario_id, nombre, apellido, nombre_usuario, contrasenia AS hashedPassword, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
+    // 
+    //'SELECT usuario_id, nombre, apellido, nombre_usuario, contrasenia AS hashedPassword, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
+    'SELECT usuario_id, nombre, apellido, nombre_usuario, password AS hashedPassword, tipo_usuario, activo FROM usuarios WHERE nombre_usuario = ? AND activo = 1',
     [username]
   )
   return rows.length ? rows[0] : null
@@ -45,7 +46,8 @@ export const verifyPassword = async (plainPassword, hashedPassword, userId) => {
     if (esValida) {
       const nuevoHash = await bcrypt.hash(passwordLimpia, 10)
       await pool.query(
-        `UPDATE usuarios SET contrasenia = ? WHERE usuario_id = ?`,
+      // `UPDATE usuarios SET contrasenia = ? WHERE usuario_id = ?`,
+         `UPDATE usuarios SET password = ? WHERE usuario_id = ?`,
         [nuevoHash, userId]
       )
       console.log(`Usuario ${userId} migrado de MD5 a bcrypt`)
@@ -85,9 +87,13 @@ export const getUsuarioById = async (id) => {
 // ===============================================================
 export const createUsuario = async (data) => {
   const pool = getDbPool()
-  const hash = await hashPassword(data.contrasenia)
+
+ // const hash = await hashPassword(data.contrasenia)
+  const hash = await hashPassword(data.password)
   const [result] = await pool.query(
-    `INSERT INTO usuarios (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto)
+   /* `INSERT INTO usuarios (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,*/
+     `INSERT INTO usuarios (nombre, apellido, nombre_usuario, password, tipo_usuario, celular, foto)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.nombre, data.apellido, data.nombre_usuario, hash, data.tipo_usuario, data.celular, data.foto]
   )
@@ -101,12 +107,15 @@ export const updateUsuario = async (id, data) => {
   const pool = getDbPool()
   const updateData = { ...data }
 
-  if (data.contrasenia) {
+ /* if (data.contrasenia) {
     updateData.contrasenia = await hashPassword(data.contrasenia)
   }
 
   await pool.query('UPDATE usuarios SET ? WHERE usuario_id = ?', [updateData, id])
-  return { message: 'Usuario actualizado' }
+  return { message: 'Usuario actualizado' }*/
+    if (data.password) {
+    updateData.password = await hashPassword(data.password)
+  }
 }
 
 // ===============================================================

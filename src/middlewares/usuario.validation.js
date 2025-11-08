@@ -5,7 +5,9 @@ export const createUsuarioValidation = [
   body('nombre').isString().isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres.'),
   body('apellido').isString().isLength({ min: 2 }).withMessage('El apellido debe tener al menos 2 caracteres.'),
   body('nombre_usuario').isEmail().withMessage('El formato de email es inválido.'),
-  body('contrasenia').isLength({ min: 4 }).withMessage('La contraseña debe tener al menos 4 caracteres.'),
+  body('password').isLength({ min: 4 }).withMessage('La contraseña debe tener al menos 4 caracteres.'),
+  //body('contrasenia').isLength({ min: 4 }).withMessage('La contraseña debe tener al menos 4 caracteres.'),
+  //COMENTÉ ESTO XQ TENGO PASSWORD en la bdd
   // Este campo es ignorado/sobrescrito en el registro de cliente, pero se mantiene la validación para uso interno/admin.
   body('tipo_usuario').optional().isInt({ min: 1, max: 3 }).withMessage('Tipo de usuario debe ser 1, 2 o 3.'), 
   

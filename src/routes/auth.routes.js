@@ -86,11 +86,8 @@ router.post('/login', login);
  *         '409':
  *           description: El nombre de usuario (email) ya está registrado.
  */
-router.post(
-    '/registro/cliente',
-    createUsuarioValidation,
-    registerClientController
-);
+router.post('/register/client', createUsuarioValidation, registerClientController);
+
 
 // Ruta de prueba para envío de correo
 router.get('/test-email', async (req, res) => {

@@ -9,22 +9,22 @@ import { setupSwagger } from './swagger.js';
 
 
 // Determina el archivo a cargar basado en NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' 
-    ? '.env.production' 
-    : '.env.development';
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
 dotenv.config({ path: envFile });  // CARGA DE VARIABLES DE ENTORNO
 
 // Importamos la función de inicialización del pool DEBE IR DESPUÉS de dotenv.config()
-import { initializeDbPool } from './config/db.js'; 
+import { initializeDbPool } from './config/db.js';
 
 // IMPORTAMOS EL ROUTER CENTRAL DE LA API
 import apiRouter from './routes/index.js'; // Contiene /auth, /salones, etc.
 
 // IMPORTAMOS MIDDLEWARES DE SEGURIDAD Y CIERRE
-import { verifyToken } from './middlewares/auth.middleware.js'; 
-import { notFound, errorHandler } from './middlewares/index.js'; 
+import { verifyToken } from './middlewares/auth.middleware.js';
+import { notFound, errorHandler } from './middlewares/index.js';
 
-const app = express(); 
+const app = express();
 
 // ************************************************************
 // CONFIGURACIÓN
@@ -49,13 +49,13 @@ app.use(helmet());
 // - LOGGING
 const morganMiddleware = setupLogging(app.get('env'));
 // - RENDIMIENTO
-app.use(compression()); 
+app.use(compression());
 // - SEGURIDAD DE DOMINIOS
-app.use(cors());        
+app.use(cors());
 
 // - BODY PARSERS - DEBEN IR ANTES DE CUALQUIER RUTA QUE USE req.body
-app.use(express.json({ limit: '5mb' })); 
-app.use(express.urlencoded({ extended: true, limit: '5mb' })) 
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // ************************************************************
 // ZONA DE RUTAS DE LA APLICACIÓN
@@ -89,8 +89,10 @@ app.use((req, res, next) => {
   const isSwagger = req.originalUrl.includes('/docs');
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
   // NUEVA EXCEPCIÓN: Registrar Cliente
-  const isRegister = req.originalUrl.includes('/api/auth/registro/cliente') && req.method === 'POST';
-  
+  const isRegister = req.originalUrl.includes('/api/auth/register/client') && req.method === 'POST';
+
+
+
   // MODIFICAR EL IF para incluir isRegister
   if (isLogin || isSwagger || isTestEmail || isRegister) {
     return next(); // deja pasar login, registro, swagger y test-email sin verificar token
@@ -128,25 +130,25 @@ app.use(errorHandler);// Página personalizada de error 500
 // INICIO DEL SERVIDOR ASÍNCRONO
 // ************************************************************
 async function startServer() {
-    try {
-        // a - INICIALIZAR EL POOL DE LA BASE DE DATOS (DEBE SER EL PRIMERO)
-        // Esto garantiza que process.env.DB_NAME está disponible cuando se crea el pool.
-        await initializeDbPool(); 
+  try {
+    // a - INICIALIZAR EL POOL DE LA BASE DE DATOS (DEBE SER EL PRIMERO)
+    // Esto garantiza que process.env.DB_NAME está disponible cuando se crea el pool.
+    await initializeDbPool();
 
-        // b - Iniciar Express
-        app.listen(app.get('port'), app.get('host'), (error) => {
+    // b - Iniciar Express
+    app.listen(app.get('port'), app.get('host'), (error) => {
 
-            if (error) {
-                throw error;
-            }
-            // El mensaje ahora muestra la IP y el puerto correctos del .env
-            console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
-        });
+      if (error) {
+        throw error;
+      }
+      // El mensaje ahora muestra la IP y el puerto correctos del .env
+      console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
+    });
 
-    } catch (error) {
-        console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
-        process.exit(1);
-    }
+  } catch (error) {
+    console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
+    process.exit(1);
+  }
 }
 
 // Llamar a la función de inicio
