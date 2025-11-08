@@ -1,0 +1,182 @@
+paths:
+  /reservas/mis-reservas:
+    get:
+      summary: Ver reservas del cliente autenticado
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de reservas del cliente
+        '401':
+          description: No autorizado
+
+  /reservas:
+    get:
+      summary: Ver todas las reservas (admin y empleado)
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de todas las reservas
+        '401':
+          description: No autorizado
+    post:
+      summary: Crear una nueva reserva con comprobante de pago
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - fecha_reserva
+                - salon_id
+                - usuario_id
+                - turno_id
+                - importe_salon
+                - servicios
+                - comprobante
+              properties:
+                fecha_reserva:
+                  type: string
+                  example: "2025-11-10"
+                salon_id:
+                  type: integer
+                  example: 1
+                usuario_id:
+                  type: integer
+                  example: 2
+                turno_id:
+                  type: integer
+                  example: 1
+                importe_salon:
+                  type: number
+                  example: 5000
+                servicios:
+                  type: string
+                  example: '[{"servicio_id": 1, "importe": 1500}]'
+                  description: JSON stringificado de servicios
+                comprobante:
+                  type: string
+                  format: binary
+                  description: PDF o imagen del comprobante
+      responses:
+        '201':
+          description: Reserva creada
+        '400':
+          description: Datos inválidos o archivo faltante
+        '401':
+          description: No autorizado
+
+  /reservas/{id}:
+    get:
+      summary: Obtener reserva por ID
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalles de la reserva
+        '404':
+          description: Reserva no encontrada
+        '401':
+          description: No autorizado
+    put:
+      summary: Actualizar estado de reserva
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                estado:
+                  type: integer
+                  description: Nuevo estado de la reserva (ej. 1=Confirmada, 2=Cancelada)
+      responses:
+        '200':
+          description: Reserva actualizada
+        '400':
+          description: Datos inválidos
+    delete:
+      summary: Desactivar reserva (soft delete)
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reserva desactivada
+        '404':
+          description: Reserva no encontrada
+
+  /reservas/estadisticas:
+    get:
+      summary: Estadísticas mensuales de reservas
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Datos estadísticos de las reservas
+
+  /reservas/{id}/pdf:
+    get:
+      summary: Generar PDF de una reserva
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: PDF de la reserva generado
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /reservas/csv:
+    get:
+      summary: Exportar todas las reservas en formato CSV
+      tags: [Reservas]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Archivo CSV con todas las reservas
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary

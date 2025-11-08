@@ -22,7 +22,10 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: ['./src/routes/*.js'],
+  // Ahora escanea tanto los archivos de rutas JS como los archivos de documentación YAML
+  apis: [
+    './src/routes/*.js', 
+    './src/docs/*.yaml'],
 };
 
 const swaggerSpec = swaggerJSDoc(options);
