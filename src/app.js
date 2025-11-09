@@ -90,8 +90,6 @@ app.use((req, res, next) => {
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
   const isRegister = req.path === '/api/auth/register/client' && req.method === 'POST';
 
-
-  
   // Excepciones: Login, Swagger, test-email y registro de cliente
   if (isLogin || isSwagger || isTestEmail || isRegister) {
     return next();
@@ -134,6 +132,10 @@ async function startServer() {
   try {
     // Inicializar pool de la base de datos
     await initializeDbPool();
+
+    // Ejecutar job de encuestas después de inicializar el pool
+    const { iniciarJobEncuestas } = await import('./jobs/enviarEncuestas.job.js');
+    iniciarJobEncuestas();
 
     // Iniciar Express
     app.listen(app.get('port'), app.get('host'), (error) => {

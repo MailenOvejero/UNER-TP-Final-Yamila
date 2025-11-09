@@ -360,3 +360,127 @@ export const listarEncuestas = async (req, res, next) => {
     next(error);
   }
 };
+// ----------------- NUEVAS FUNCIONES MEJORADAS -----------------
+
+// ✅ Listar TODAS las encuestas (para admin o empleado)
+export const listarTodasEncuestas = async (req, res, next) => {
+  try {
+    const pool = getDbPool();
+    const [encuestas] = await pool.query(`
+      SELECT e.encuesta_id, e.reserva_id, e.usuario_id, e.puntuacion, e.comentarios, e.creado,
+             u.nombre, u.apellido
+      FROM encuestas e
+      JOIN usuarios u ON e.usuario_id = u.usuario_id
+      ORDER BY e.creado DESC
+    `);
+
+    if (encuestas.length === 0) {
+      return res.status(404).json({ message: 'No hay encuestas registradas.' });
+    }
+
+    res.status(200).json(encuestas);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ✅ Listar TODOS los comentarios (para admin o empleado)
+export const listarTodosComentarios = async (req, res, next) => {
+  try {
+    const pool = getDbPool();
+    const [comentarios] = await pool.query(`
+      SELECT c.comentario_id, c.reserva_id, c.usuario_id, c.comentario, c.creado,
+             u.nombre, u.apellido
+      FROM comentarios c
+      JOIN usuarios u ON c.usuario_id = u.usuario_id
+      ORDER BY c.creado DESC
+    `);
+
+    if (comentarios.length === 0) {
+      return res.status(404).json({ message: 'No hay comentarios registrados.' });
+    }
+
+    res.status(200).json(comentarios);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ✅ Notificación automática cuando el admin deja un comentario
+export const agregarComentarioConNotificacion = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const usuario_id = req.user.id;
+    const { comentario } = req.body;
+
+    if (!comentario || comentario.trim() === '') {
+      return res.status(400).json({ message: 'El comentario no puede estar vacío' });
+    }
+
+    const nuevo = await reservaService.agregarComentario({ reserva_id, usuario_id, comentario });
+    const pool = getDbPool();
+
+    // Obtener email del cliente
+    const [[cliente]] = await pool.query(`
+      SELECT u.nombre, u.apellido, u.nombre_usuario AS email
+      FROM reservas r
+      JOIN usuarios u ON r.usuario_id = u.usuario_id
+      WHERE r.reserva_id = ?
+    `, [reserva_id]);
+
+    if (cliente) {
+      await enviarNotificacionReserva({
+        destinatario: cliente.email,
+        asunto: 'Nuevo comentario sobre tu reserva',
+        mensaje: `
+          Hola ${cliente.nombre} ${cliente.apellido},<br><br>
+          El administrador dejó un nuevo comentario en tu reserva:<br>
+          <blockquote>${comentario}</blockquote><br>
+          ¡Gracias por confiar en nosotros! 💚
+        `,
+      });
+    }
+
+    apicacheInstance.clear();
+    res.status(201).json({ message: 'Comentario agregado y correo enviado', comentario_id: nuevo.comentario_id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ✅ Notificación automática cuando el cliente completa la encuesta
+export const agregarEncuestaConNotificacion = async (req, res, next) => {
+  try {
+    const reserva_id = req.params.id;
+    const usuario_id = req.user.id;
+    const { puntuacion, comentarios } = req.body;
+
+    const nueva = await reservaService.agregarEncuesta({ reserva_id, usuario_id, puntuacion, comentarios });
+    const pool = getDbPool();
+
+    // Buscar correo del admin (rol 1)
+    const [admins] = await pool.query(`
+      SELECT nombre_usuario AS email
+      FROM usuarios
+      WHERE tipo_usuario = 1 AND activo = 1
+    `);
+
+    for (const admin of admins) {
+      await enviarNotificacionReserva({
+        destinatario: admin.email,
+        asunto: 'Nueva encuesta de satisfacción recibida',
+        mensaje: `
+          <h3>📋 Nueva encuesta completada</h3>
+          <p><strong>Reserva ID:</strong> ${reserva_id}</p>
+          <p><strong>Puntuación:</strong> ${puntuacion}/5</p>
+          <p><strong>Comentarios:</strong> ${comentarios}</p>
+        `,
+      });
+    }
+
+    apicacheInstance.clear();
+    res.status(201).json({ message: 'Encuesta guardada y notificación enviada', encuesta_id: nueva.encuesta_id });
+  } catch (error) {
+    next(error);
+  }
+};
