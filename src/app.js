@@ -7,6 +7,9 @@ import { setupLogging } from './middlewares/logging.middleware.js';
 import helmet from 'helmet';  // seguridad
 import { setupSwagger } from './swagger.js';
 
+// IMPORTACIÓN ESTÁTICA DEL JOB DE RECORDATORIOS (ahora sí funciona)
+import { iniciarJobRecordatorios } from './jobs/recordatorioReservas.job.js';
+
 // Determina el archivo a cargar basado en NODE_ENV
 const envFile = process.env.NODE_ENV === 'production'
   ? '.env.production'
@@ -49,7 +52,7 @@ app.use(compression());
 // Multiples dominios
 app.use(cors());
 
-// Body parsers, el urlencodded no lo llegamos a usar, pero lo dejamos
+// Body parsers
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
@@ -60,7 +63,6 @@ setupSwagger(app); // Va antes de  JWT
 
 
 // RUTA test de bienvenida (Pública)
-
 app.get("/", (req, res) => {
   const appName = app.get('app name');
   const version = app.get('version');
@@ -78,9 +80,7 @@ app.get("/", (req, res) => {
 });
 
 
-// MIDDLEWARE DE AUTENTICACIÓN (JWT Check) ->  usamos algunas excxepciones puntuales
-// Si tuviera un front definido ya podriamos armar un ruter publico bien definido e incluirlas con nuevas funcionalidades
-
+// MIDDLEWARE DE AUTENTICACIÓN (JWT Check)
 app.use((req, res, next) => {
   const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
   const isSwagger = req.originalUrl.includes('/docs') || req.originalUrl.includes('/api-docs');
@@ -116,30 +116,26 @@ if (app._router && app._router.stack) {
 
 
 // -------- Manejo de errores con notificaciones por mail -------- 
-
 app.use(notFound);    // Página personalizada de error 404
 app.use(errorHandler);// Página personalizada de error 500
 
 
-// -------- Con esto el server espera a que inicialice la DB para iniciar express --------
-// -------- Se implemento asi porque en linux al iniciar la DB manualmente si uno se olvidaba habia error -------
-// -------- Podemos decir que es una mejora, esto podria pasar si la DB estuviera lojada en otro server -------
-
+// -------- Inicio del servidor y jobs --------
 async function startServer() {
   try {
     await initializeDbPool();
 
-    // Ejecutamos el job de encuestas inmediatamente después de inicializar el pool de la DB!
+    // Ejecutamos el job de encuestas inmediatamente después de inicializar el pool de la DB
     const { iniciarJobEncuestas } = await import('./jobs/enviarEncuestas.job.js');
     iniciarJobEncuestas();
-    const { iniciarJobRecordatorios } = await import('./jobs/recordatorioReservas.job.js');
-    iniciarJobRecordatorios();
 
+    //  Ejecutamos el job de recordatorios (ya importado arriba, no dinámico)
+    iniciarJobRecordatorios();
 
     // Iniciamos Express normalmente
     app.listen(app.get('port'), app.get('host'), (error) => {
       if (error) throw error;
-      console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
+      console.log(chalk.green.italic(`\n✔ Server Express: V5.1.0 - ONLINE\n\n✔ IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
     });
   } catch (error) {
     console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
