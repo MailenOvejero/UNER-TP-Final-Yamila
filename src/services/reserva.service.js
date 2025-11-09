@@ -7,6 +7,7 @@ import {
   softDeleteReserva,
   getEstadisticasPorMes,
   getReservasCSV,
+  verificarDisponibilidadReserva,
 
   // Estas son las f(para comentarios y encuestas)
   createComentario,
@@ -39,59 +40,71 @@ export const obtenerReservasDelUsuario = async (usuario_id) => {
   return await getReservasByUsuario(usuario_id);
 };
 
-// ojo!! se modifico: Ahora acepta 'datos', que incluyen la 'ruta_comprobante'
-// Crea la nueva reserva con servicios y comprobante
+/**
+ * Crea una nueva reserva después de verificar la disponibilidad
+ * @param {Object} datos - Datos de la reserva
+ * @param {string} datos.fecha_reserva - Fecha de la reserva (YYYY-MM-DD)
+ * @param {number} datos.salon_id - ID del salón
+ * @param {number} datos.turno_id - ID del turno
+ * @param {number} datos.usuario_id - ID del usuario
+ * @param {number} datos.importe_salon - Importe del salón
+ * @param {Array} datos.servicios - Array de servicios adicionales
+ * @param {string} datos.ruta_comprobante - Ruta del comprobante de pago
+ * @returns {Promise<Object>} - Objeto con la información de la reserva creada
+ * @throws {CustomError} - Si el salón no está disponible para la fecha y turno solicitados
+ */
 export const crearReserva = async (datos) => {
-  // 1. Lógica de Negocio (Aquí iría la verificación de disponibilidad, por ejemplo)
-  // ...
+  const { fecha_reserva, salon_id, turno_id } = datos;
 
-  // 2. Persistencia de datos
-  // 'datos' ya contiene: { fecha_reserva, salon_id, ..., ruta_comprobante }
-  const nuevaReserva = await createReserva(datos); 
+  // Verifico disponibilidad
+  const { disponible, reservasExistentes } = await verificarDisponibilidadReserva(
+    fecha_reserva,
+    salon_id,
+    turno_id
+  );
+
+  if (!disponible) {
+    throw new CustomError(
+      'El salón no está disponible para la fecha y turno seleccionados. Por favor, elija otra fecha u horario.',
+      400
+    );
+  }
+
+  // Creo reserva
+  const nuevaReserva = await createReserva(datos);
   
-  // NOTA: La lógica de envío de correos y notificaciones se dejó en el controlador 
-  // (`RESERVA.CONTROLLER.js`) porque requiere acceder al `pool` de la BD para 
-  // obtener datos completos y correos de administradores. Si esa lógica solo 
-  // usara los datos iniciales, podría moverse aquí.
+  // OJoN, la lógica de envío de correos y notificaciones se dejó en el controlador 
+  // (`RESERVA.CONTROLLER.js`) porque requiere acceder al "pool" de la BD para 
+  // obtener datos completos y correos de administradores
   
   return nuevaReserva;
 };
-// ----------------------------------------------------------------------
 
-
-// ----------------------------------------------------------------------
-// Actualizar una reserva existente
-// ----------------------------------------------------------------------
+// Actualizo reserva
 export const actualizarReserva = async (id, datos) => {
   await updateReserva(id, datos);
   return { message: 'Reserva actualizada' };
 };
 
-// ----------------------------------------------------------------------
-// Eliminar lógicamente una reserva
-// ----------------------------------------------------------------------
+//   (softDelete)
 export const eliminarReserva = async (id) => {
   await softDeleteReserva(id);
   return { message: 'Reserva desactivada' };
 };
 
-// ----------------------------------------------------------------------
-// Obtener estadísticas mensuales (procedimiento almacenado)
-// ----------------------------------------------------------------------
+// get estadísticas mensuales (procedimiento almacenado)
 export const obtenerEstadisticas = async () => {
   return await getEstadisticasPorMes();
 };
 
-// ----------------------------------------------------------------------
-// Obtener reservas para exportar a CSV
-// ----------------------------------------------------------------------
+
+// get reservas para exportar a CSV
 export const obtenerReservasParaCSV = async () => {
   return await getReservasCSV();
 };
 
-// ----------------------------------------------------------------------
-// ----------------- COMENTARIOS -----------------
-// ----------------------------------------------------------------------
+
+// ------- extra COMENTARIOS -------
 export const agregarComentario = async ({ reserva_id, usuario_id, comentario }) => {
   // validar existencia de reserva
   const reserva = await dataGetReservaById(reserva_id);
@@ -109,18 +122,17 @@ export const listarComentarios = async (reserva_id) => {
   return await getComentariosByReserva(reserva_id);
 };
 
-// ----------------------------------------------------------------------
-// ----------------- ENCUESTAS -----------------
-// ----------------------------------------------------------------------
+
+// ------- extra ENCUESTAS -------
 export const agregarEncuesta = async ({ reserva_id, usuario_id, puntuacion, comentarios }) => {
-  // 1) validar reserva existe
+  // validar reserva existe
   const reserva = await dataGetReservaById(reserva_id);
   if (!reserva) throw new Error('Reserva no encontrada');
 
-  // 2) validar que la encuesta la envía el dueño de la reserva
+  // validar que la encuesta la envía el dueño de la reserva
   if (reserva.usuario_id !== Number(usuario_id)) throw new Error('No estás autorizado para encuestar esta reserva');
 
-  // 3) validar que la fecha de la reserva ya pasó (fecha_reserva < hoy)
+  // validar que la fecha de la reserva ya pasó (fecha_reserva < hoy)
   const hoy = new Date();
   const fechaReserva = new Date(reserva.fecha_reserva);
   // compara solo la fecha (ignora horas)
@@ -128,11 +140,11 @@ export const agregarEncuesta = async ({ reserva_id, usuario_id, puntuacion, come
   const fechaReservaStr = fechaReserva.toISOString().slice(0,10);
   if (fechaReservaStr >= fechaHoyStr) throw new Error('La encuesta solo puede completarse después de realizada la reserva');
 
-  // 4) prevenir duplicados: 1 encuesta por usuario por reserva
+  //  prevenir duplicados: 1 encuesta por usuario por reserva
   const ya = await getEncuestaByReservaAndUser(reserva_id, usuario_id);
   if (ya) throw new Error('Ya completaste la encuesta para esta reserva');
 
-  // 5) validar puntuacion entre 1 y 5
+  // validar puntuacion (entre 1 y 5
   const p = Number(puntuacion);
   if (!Number.isInteger(p) || p < 1 || p > 5) throw new Error('Puntuación inválida (1-5)');
 
@@ -140,7 +152,7 @@ export const agregarEncuesta = async ({ reserva_id, usuario_id, puntuacion, come
 };
 
 export const listarEncuestas = async (reserva_id) => {
-  // Opcional: validar existencia de reserva
+  // validar existencia de reserva
   const reserva = await dataGetReservaById(reserva_id);
   if (!reserva) throw new Error('Reserva no encontrada');
   return await getEncuestasByReserva(reserva_id);
