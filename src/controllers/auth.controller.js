@@ -45,7 +45,7 @@ export const login = async (req, res, next) => {
         }
 
         //  comparo contraseñas
-        console.log('🧩 Comparando contraseña...');
+        console.log(' Comparando contraseña...');
         console.log('Ingresada:', passwordIngresada);
         console.log('Hash DB:', userHashedPassword);
 
@@ -58,7 +58,7 @@ export const login = async (req, res, next) => {
 
         console.log('Contraseña correcta');
 
-        // 🎟️ genero token JWT
+        // genero token JWT
         const token = generateToken(user);
 
         const roleName = Object.entries(ROLES).find(([_, value]) => value === user.tipo_usuario)?.[0];

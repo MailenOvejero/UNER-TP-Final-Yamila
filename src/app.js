@@ -133,6 +133,9 @@ async function startServer() {
     // Ejecutamos el job de encuestas inmediatamente después de inicializar el pool de la DB!
     const { iniciarJobEncuestas } = await import('./jobs/enviarEncuestas.job.js');
     iniciarJobEncuestas();
+    const { iniciarJobRecordatorios } = await import('./jobs/recordatorioReservas.job.js');
+    iniciarJobRecordatorios();
+
 
     // Iniciamos Express normalmente
     app.listen(app.get('port'), app.get('host'), (error) => {

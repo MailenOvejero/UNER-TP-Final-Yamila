@@ -231,7 +231,7 @@ export const generarReportePDF = async (req, res, next) => {
   }
 };
 
-// 📦ENDPOINTS PROF PARA DESCARGAR CSV
+// ENDPOINTS PROF PARA DESCARGAR CSV
 
 // Descargar todas las reservas en CSV
 export const descargarCSVReservas = async (req, res, next) => {
@@ -355,7 +355,7 @@ export const listarEncuestas = async (req, res, next) => {
 };
 // ------- NUEVAS FUNCIONES MEJORADAS -------
 
-// ✅ Listar TODAS las encuestas (para admin o empleado)
+// Listar TODAS las encuestas (para admin o empleado)
 export const listarTodasEncuestas = async (req, res, next) => {
   try {
     const pool = getDbPool();
@@ -429,7 +429,7 @@ export const agregarComentarioConNotificacion = async (req, res, next) => {
           Hola ${cliente.nombre} ${cliente.apellido},<br><br>
           El administrador dejó un nuevo comentario en tu reserva:<br>
           <blockquote>${comentario}</blockquote><br>
-          ¡Gracias por confiar en nosotros! 💚
+          ¡Gracias por confiar en nosotros! 
         `,
       });
     }
