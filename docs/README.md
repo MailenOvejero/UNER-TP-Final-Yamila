@@ -14,6 +14,10 @@ El proyecto es una API backend robusta y escalable, desarrollada en **Node.js co
 
 Además de las operaciones estándar, la API incorpora una serie de características avanzadas para mejorar la seguridad, la experiencia de usuario y la mantenibilidad.
 
+
+### Cliente neuevo CREA USUARIO EN RUTA PUBLICA (/api/auth/register/client)
+    Esta habilitado el endpoint para que se puede crear un usuario nuevo.
+
 ### Seguridad y Autenticación
 *   **Migración de Hashes a `bcrypt`:** El sistema detecta automáticamente contraseñas hasheadas con el antiguo algoritmo MD5. Si la validación de un usuario es exitosa, su contraseña se migra de forma transparente al nuevo y más seguro formato `bcrypt`.
 *   **Notificación de Errores a Administradores:** Ante un error crítico no controlado (código 500), el sistema notifica automáticamente por correo electrónico a todos los administradores para una respuesta inmediata.
