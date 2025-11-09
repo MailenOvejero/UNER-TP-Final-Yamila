@@ -14,8 +14,10 @@ import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
 
 const router = Router();
 
-// 🔒 ------ Todas las rutas de usuarios requieren token y rol ADMIN ------
+// 🔒 ------ Todas las rutas de usuarios requieren token ------
 router.use(verifyToken);
+
+// 🔒 ------ Rutas que solo pueden acceder los administradores ------
 router.use(authorize([ROLES.ADMIN]));
 
 /**
@@ -30,7 +32,12 @@ router.use(authorize([ROLES.ADMIN]));
  *       200:
  *         description: Lista de usuarios
  */
-router.get('/', cacheMiddleware(), getUsuarios);
+// 🔒 Ruta para listar usuarios (accesible por ADMIN y EMPLEADO)
+router.get('/', 
+  authorize([ROLES.ADMIN, ROLES.EMPLEADO]), 
+  cacheMiddleware(), 
+  getUsuarios
+);
 
 /**
  * @swagger
