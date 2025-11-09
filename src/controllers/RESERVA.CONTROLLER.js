@@ -483,9 +483,7 @@ export const agregarEncuestaConNotificacion = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
-
-// ------------------ INVITADOS (dentro de reserva.controller.js) ------------------
+};// ------------------ INVITADOS (dentro de reserva.controller.js) ------------------
 
 // Funciones "service" integradas acá mismo
 const agregarInvitadoDB = async ({ reserva_id, nombre, apellido, edad, email }) => {
@@ -531,6 +529,21 @@ const eliminarInvitadoDB = async (invitado_id) => {
 export const agregarInvitados = async (req, res, next) => {
   try {
     const { reserva_id } = req.params;
+    const usuario_id = req.user.id;
+    const pool = getDbPool();
+
+    // --- INICIO DE VERIFICACIÓN DE PERMISO ---
+    // Verificar que la reserva exista y pertenezca al usuario logueado
+    const [reservaRows] = await pool.query(
+      `SELECT reserva_id FROM reservas WHERE reserva_id = ? AND usuario_id = ? AND activo = 1`,
+      [reserva_id, usuario_id]
+    );
+
+    if (!reservaRows || reservaRows.length === 0) {
+      return res.status(404).json({ message: 'Reserva no encontrada o no tienes permiso para agregar invitados.' });
+    }
+    // --- FIN DE VERIFICACIÓN ---
+
     let invitados = req.body; // Puede ser un objeto o un array de invitados
 
     if (!Array.isArray(invitados)) invitados = [invitados];
@@ -554,6 +567,23 @@ export const agregarInvitados = async (req, res, next) => {
 export const listarInvitadosReserva = async (req, res, next) => {
   try {
     const { reserva_id } = req.params;
+    const usuario_id = req.user.id;
+    const userRole = req.user.role;
+    const pool = getDbPool();
+
+    // --- INICIO DE VERIFICACIÓN DE PERMISO ---
+    // Si el usuario no es Admin/Empleado, verificar que sea el dueño de la reserva
+    if (userRole !== 1 && userRole !== 2) { // Asumiendo 1=ADMIN, 2=EMPLEADO
+      const [reservaRows] = await pool.query(
+        `SELECT reserva_id FROM reservas WHERE reserva_id = ? AND usuario_id = ? AND activo = 1`,
+        [reserva_id, usuario_id]
+      );
+      if (!reservaRows || reservaRows.length === 0) {
+        return res.status(404).json({ message: 'Reserva no encontrada o no tienes permiso para ver los invitados.' });
+      }
+    }
+    // --- FIN DE VERIFICACIÓN ---
+
     const invitados = await listarInvitadosDB(reserva_id);
     res.status(200).json(invitados);
   } catch (error) {
@@ -561,37 +591,77 @@ export const listarInvitadosReserva = async (req, res, next) => {
   }
 };
 
-// Actualizar invitado
+//Actualizar datds de invitado
 export const actualizarInvitado = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    // 🔐 Validar que el invitado pertenece a una reserva del usuario logueado
+    const { reserva_id, invitado_id } = req.params;
     const pool = getDbPool();
+
+    // Verificar que el invitado exista y pertenezca al cliente logueado
     const [rows] = await pool.query(`
       SELECT i.invitado_id
       FROM invitados i
-      JOIN reservas r ON i.reserva_id = r.reserva_id
+      JOIN reservas r ON i.reserva_id = r.reserva_id AND r.reserva_id = ?
       WHERE i.invitado_id = ? AND r.usuario_id = ? AND i.activo = 1
-    `, [id, req.user.id]);
+    `, [reserva_id, invitado_id, req.user.id]);
 
-    if (rows.length === 0) {
-      return res.status(403).json({ message: 'No tenés permiso para editar este invitado.' });
+    if (!rows || rows.length === 0) {
+      // ⚠️ Si no lo encuentra, devuelve 404
+      return res.status(404).json({ message: 'Invitado no encontrado o no tenés permiso.' });
     }
 
-    const actualizado = await actualizarInvitadoDB(id, req.body);
-    res.status(200).json({ message: 'Invitado actualizado', invitado: actualizado });
+    // Validar que nombre y apellido estén presentes
+    const { nombre, apellido, edad, email } = req.body;
+    if (!nombre || !apellido) {
+      return res.status(400).json({ message: 'Nombre y apellido son obligatorios.' });
+    }
+
+    // Hacer la actualización
+    await pool.query(`
+      UPDATE invitados
+      SET nombre = ?, apellido = ?, edad = ?, email = ?, modificado = NOW()
+      WHERE invitado_id = ?
+    `, [nombre, apellido, edad || null, email || null, invitado_id]);
+
+    res.status(200).json({
+      message: 'Invitado actualizado correctamente',
+      invitado: { invitado_id: invitado_id, nombre, apellido, edad, email }
+    });
+
   } catch (error) {
     next(error);
   }
 };
 
+
 // Eliminar invitado (soft delete)
 export const eliminarInvitado = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const resultado = await eliminarInvitadoDB(id);
-    res.status(200).json(resultado);
+    const { reserva_id, invitado_id } = req.params;
+    const pool = getDbPool();
+
+    // Verificar que el invitado exista y pertenezca al cliente logueado
+    const [rows] = await pool.query(`
+      SELECT i.invitado_id
+      FROM invitados i
+      JOIN reservas r ON i.reserva_id = r.reserva_id AND r.reserva_id = ?
+      WHERE i.invitado_id = ? AND r.usuario_id = ? AND i.activo = 1
+    `, [reserva_id, invitado_id, req.user.id]);
+
+    if (!rows || rows.length === 0) {
+      // ⚠️ Aquí está la clave: si el SELECT no encuentra nada, no se puede borrar
+      return res.status(404).json({ message: 'Invitado no encontrado o no tenés permiso.' });
+    }
+
+    // Hacer soft delete
+    await pool.query(`
+      UPDATE invitados
+      SET activo = 0, modificado = NOW()
+      WHERE invitado_id = ?
+    `, [invitado_id]);
+
+    res.status(200).json({ message: 'Invitado eliminado correctamente', invitado_id: invitado_id });
+
   } catch (error) {
     next(error);
   }

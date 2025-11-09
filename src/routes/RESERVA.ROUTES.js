@@ -213,19 +213,6 @@ router.get('/csv', authorize([ROLES.ADMIN]), descargarCSVReservas);
  */
 router.get('/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodasEncuestas);
 /**
- * @swagger
- * /reservas/comentarios:
- *   get:
- *     summary: Listar todos los comentarios de reservas (admin/empleado)
- *     tags: [Reservas]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista completa de comentarios
- */
-router.get('/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodosComentarios);
-
 // Clientes logueados pueden agregar invitados a sus reservas
 /**
  * @swagger
@@ -276,7 +263,7 @@ router.get('/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodos
  *       400:
  *         description: Datos inválidos
  */
-router.post('/:reserva_id/invitados', agregarInvitados);
+router.post('/:reserva_id/invitados', authorize([ROLES.CLIENTE]), agregarInvitados);
 
 /**
  * @swagger
@@ -299,23 +286,29 @@ router.post('/:reserva_id/invitados', agregarInvitados);
  *       404:
  *         description: No se encontraron invitados
  */
-router.get('/:reserva_id/invitados', listarInvitadosReserva);
+router.get('/:reserva_id/invitados', authorize([ROLES.CLIENTE, ROLES.ADMIN, ROLES.EMPLEADO]), listarInvitadosReserva);
 
 /**
  * @swagger
- * /invitados/{id}:
+ * /reservas/{reserva_id}/invitados/{invitado_id}:
  *   put:
  *     summary: Actualizar datos de un invitado
  *     tags: [Invitados]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: reserva_id
+ *         in: path
  *         required: true
+ *         description: ID de la reserva a la que pertenece el invitado.
  *         schema:
  *           type: integer
- *         description: ID del invitado
+ *       - name: invitado_id
+ *         in: path
+ *         required: true
+ *         description: ID del invitado a actualizar.
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -335,28 +328,34 @@ router.get('/:reserva_id/invitados', listarInvitadosReserva);
  *       200:
  *         description: Invitado actualizado
  */
-router.put('/invitados/:id', actualizarInvitado);
+router.put('/:reserva_id/invitados/:invitado_id',authorize([ROLES.CLIENTE]), actualizarInvitado);
 
 /**
  * @swagger
- * /invitados/{id}:
+ * /reservas/{reserva_id}/invitados/{invitado_id}:
  *   delete:
  *     summary: Eliminar un invitado (soft delete)
  *     tags: [Invitados]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: reserva_id
+ *         in: path
  *         required: true
+ *         description: ID de la reserva a la que pertenece el invitado.
  *         schema:
  *           type: integer
- *         description: ID del invitado
+ *       - name: invitado_id
+ *         in: path
+ *         required: true
+ *         description: ID del invitado a eliminar.
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Invitado eliminado
  */
-router.delete('/invitados/:id', eliminarInvitado);
+router.delete('/:reserva_id/invitados/:invitado_id', authorize([ROLES.CLIENTE]), eliminarInvitado);
 
 
 /**
@@ -623,10 +622,3 @@ router.put('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), updateReservaValida
 router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
 
 export default router;
-
-
-
-
-
-
-
