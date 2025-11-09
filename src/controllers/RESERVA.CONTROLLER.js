@@ -484,3 +484,115 @@ export const agregarEncuestaConNotificacion = async (req, res, next) => {
     next(error);
   }
 };
+
+// ------------------ INVITADOS (dentro de reserva.controller.js) ------------------
+
+// Funciones "service" integradas acá mismo
+const agregarInvitadoDB = async ({ reserva_id, nombre, apellido, edad, email }) => {
+  const pool = getDbPool();
+  const [result] = await pool.query(
+    `INSERT INTO invitados (reserva_id, nombre, apellido, edad, email) VALUES (?, ?, ?, ?, ?)`,
+    [reserva_id, nombre, apellido, edad || null, email || null]
+  );
+  return { invitado_id: result.insertId, reserva_id, nombre, apellido, edad, email };
+};
+
+const listarInvitadosDB = async (reserva_id) => {
+  const pool = getDbPool();
+  const [rows] = await pool.query(
+    `SELECT * FROM invitados WHERE reserva_id = ? AND activo = 1`,
+    [reserva_id]
+  );
+  return rows;
+};
+
+const actualizarInvitadoDB = async (invitado_id, data) => {
+  const pool = getDbPool();
+  const { nombre, apellido, edad, email } = data;
+  await pool.query(
+    `UPDATE invitados SET nombre=?, apellido=?, edad=?, email=?, modificado=NOW() WHERE invitado_id=?`,
+    [nombre, apellido, edad || null, email || null, invitado_id]
+  );
+  return { invitado_id, ...data };
+};
+
+const eliminarInvitadoDB = async (invitado_id) => {
+  const pool = getDbPool();
+  await pool.query(
+    `UPDATE invitados SET activo=0, modificado=NOW() WHERE invitado_id=?`,
+    [invitado_id]
+  );
+  return { invitado_id, message: 'Invitado eliminado (soft delete)' };
+};
+
+// ------------------ CONTROLLERS ------------------
+
+// Agregar uno o varios invitados a una reserva
+export const agregarInvitados = async (req, res, next) => {
+  try {
+    const { reserva_id } = req.params;
+    let invitados = req.body; // Puede ser un objeto o un array de invitados
+
+    if (!Array.isArray(invitados)) invitados = [invitados];
+
+    const resultados = [];
+    for (const invitado of invitados) {
+      if (!invitado.nombre || !invitado.apellido) {
+        return res.status(400).json({ message: 'Nombre y apellido son obligatorios' });
+      }
+      const nuevo = await agregarInvitadoDB({ reserva_id, ...invitado });
+      resultados.push(nuevo);
+    }
+
+    res.status(201).json({ message: 'Invitados agregados', invitados: resultados });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Listar invitados de una reserva
+export const listarInvitadosReserva = async (req, res, next) => {
+  try {
+    const { reserva_id } = req.params;
+    const invitados = await listarInvitadosDB(reserva_id);
+    res.status(200).json(invitados);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Actualizar invitado
+export const actualizarInvitado = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // 🔐 Validar que el invitado pertenece a una reserva del usuario logueado
+    const pool = getDbPool();
+    const [rows] = await pool.query(`
+      SELECT i.invitado_id
+      FROM invitados i
+      JOIN reservas r ON i.reserva_id = r.reserva_id
+      WHERE i.invitado_id = ? AND r.usuario_id = ? AND i.activo = 1
+    `, [id, req.user.id]);
+
+    if (rows.length === 0) {
+      return res.status(403).json({ message: 'No tenés permiso para editar este invitado.' });
+    }
+
+    const actualizado = await actualizarInvitadoDB(id, req.body);
+    res.status(200).json({ message: 'Invitado actualizado', invitado: actualizado });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Eliminar invitado (soft delete)
+export const eliminarInvitado = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const resultado = await eliminarInvitadoDB(id);
+    res.status(200).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};

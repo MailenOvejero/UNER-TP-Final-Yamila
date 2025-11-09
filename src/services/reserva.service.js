@@ -153,3 +153,43 @@ export const listarEncuestas = async (reserva_id) => {
   if (!reserva) throw new Error('Reserva no encontrada');
   return await getEncuestasByReserva(reserva_id);
 };
+
+
+import { getDbPool } from '../config/db.js';
+
+export const agregarInvitado = async ({ reserva_id, nombre, apellido, edad, email }) => {
+  const pool = getDbPool();
+  const [result] = await pool.query(
+    `INSERT INTO invitados (reserva_id, nombre, apellido, edad, email) VALUES (?, ?, ?, ?, ?)`,
+    [reserva_id, nombre, apellido, edad || null, email || null]
+  );
+  return { invitado_id: result.insertId, reserva_id, nombre, apellido, edad, email };
+};
+
+export const listarInvitados = async (reserva_id) => {
+  const pool = getDbPool();
+  const [rows] = await pool.query(
+    `SELECT * FROM invitados WHERE reserva_id = ? AND activo = 1`,
+    [reserva_id]
+  );
+  return rows;
+};
+
+export const actualizarInvitado = async (invitado_id, data) => {
+  const pool = getDbPool();
+  const { nombre, apellido, edad, email } = data;
+  await pool.query(
+    `UPDATE invitados SET nombre=?, apellido=?, edad=?, email=?, modificado=NOW() WHERE invitado_id=?`,
+    [nombre, apellido, edad || null, email || null, invitado_id]
+  );
+  return { invitado_id, ...data };
+};
+
+export const eliminarInvitado = async (invitado_id) => {
+  const pool = getDbPool();
+  await pool.query(
+    `UPDATE invitados SET activo=0, modificado=NOW() WHERE invitado_id=?`,
+    [invitado_id]
+  );
+  return { invitado_id, message: 'Invitado eliminado (soft delete)' };
+};

@@ -17,7 +17,11 @@ import {
   agregarComentarioConNotificacion,
   agregarEncuestaConNotificacion,
   listarTodasEncuestas,
-  listarTodosComentarios
+  listarTodosComentarios,
+  agregarInvitados,
+  listarInvitadosReserva,
+  actualizarInvitado,
+  eliminarInvitado
 } from '../controllers/RESERVA.CONTROLLER.js';
 
 
@@ -221,6 +225,138 @@ router.get('/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodasEn
  *         description: Lista completa de comentarios
  */
 router.get('/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodosComentarios);
+
+// Clientes logueados pueden agregar invitados a sus reservas
+/**
+ * @swagger
+ * /reservas/{reserva_id}/invitados:
+ *   post:
+ *     summary: Agregar uno o varios invitados a una reserva
+ *     tags: [Invitados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reserva_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la reserva
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             oneOf:
+ *               - type: object
+ *                 properties:
+ *                   nombre:
+ *                     type: string
+ *                   apellido:
+ *                     type: string
+ *                   edad:
+ *                     type: integer
+ *                   email:
+ *                     type: string
+ *               - type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     nombre:
+ *                       type: string
+ *                     apellido:
+ *                       type: string
+ *                     edad:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: Invitados agregados
+ *       400:
+ *         description: Datos inválidos
+ */
+router.post('/:reserva_id/invitados', agregarInvitados);
+
+/**
+ * @swagger
+ * /reservas/{reserva_id}/invitados:
+ *   get:
+ *     summary: Listar invitados de una reserva
+ *     tags: [Invitados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reserva_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la reserva
+ *     responses:
+ *       200:
+ *         description: Lista de invitados
+ *       404:
+ *         description: No se encontraron invitados
+ */
+router.get('/:reserva_id/invitados', listarInvitadosReserva);
+
+/**
+ * @swagger
+ * /invitados/{id}:
+ *   put:
+ *     summary: Actualizar datos de un invitado
+ *     tags: [Invitados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del invitado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               apellido:
+ *                 type: string
+ *               edad:
+ *                 type: integer
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Invitado actualizado
+ */
+router.put('/invitados/:id', actualizarInvitado);
+
+/**
+ * @swagger
+ * /invitados/{id}:
+ *   delete:
+ *     summary: Eliminar un invitado (soft delete)
+ *     tags: [Invitados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del invitado
+ *     responses:
+ *       200:
+ *         description: Invitado eliminado
+ */
+router.delete('/invitados/:id', eliminarInvitado);
 
 
 /**
@@ -487,6 +623,8 @@ router.put('/:id', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), updateReservaValida
 router.delete('/:id', authorize([ROLES.ADMIN]), deleteReserva);
 
 export default router;
+
+
 
 
 
