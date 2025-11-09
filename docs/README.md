@@ -10,6 +10,45 @@ Este documento proporciona una guía completa para configurar, ejecutar y entend
 
 El proyecto es una API backend robusta y escalable, desarrollada en **Node.js con Express**, diseñada para gestionar integralmente las operaciones de un negocio de reservas de salones para eventos. La API no solo cubre las operaciones CRUD básicas, sino que también implementa una arquitectura por capas, un sistema de seguridad avanzado con migración de hashes, y un amplio abanico de funcionalidades que automatizan y mejoran la gestión del negocio y la experiencia del cliente.
 
+## Funcionalidades Extra y Mejoras Técnicas
+
+Además de las operaciones estándar, la API incorpora una serie de características avanzadas para mejorar la seguridad, la experiencia de usuario y la mantenibilidad.
+
+### Seguridad y Autenticación
+*   **Migración de Hashes a `bcrypt`:** El sistema detecta automáticamente contraseñas hasheadas con el antiguo algoritmo MD5. Si la validación de un usuario es exitosa, su contraseña se migra de forma transparente al nuevo y más seguro formato `bcrypt`.
+*   **Notificación de Errores a Administradores:** Ante un error crítico no controlado (código 500), el sistema notifica automáticamente por correo electrónico a todos los administradores para una respuesta inmediata.
+
+### Gestión de Reservas y Clientes
+*   **Creación de Reservas con Comprobante:** Al crear una reserva, el cliente debe adjuntar un comprobante de pago, el cual es gestionado eficientemente con **Multer**.
+*   **Registro Público de Clientes:** Se expone una ruta pública (`/api/auth/register/client`) que permite a cualquier persona registrarse como cliente en el sistema.
+*   **Gestión de Invitados:** El cliente puede agregar, listar, editar y eliminar invitados asociados a su reserva.
+*   **Reporte CSV por Reserva:** Se implementó un endpoint para descargar el reporte en formato CSV de una única reserva específica por su ID.
+
+### Automatización y Comunicación
+*   **Sistema de Encuestas de Satisfacción:**
+    *   24 horas después de un evento, se envía automáticamente una encuesta de satisfacción al correo del cliente.
+    *   Cuando un cliente responde, se notifica por correo a los administradores.
+    *   Los administradores pueden listar todas las encuestas del sistema o filtrarlas por reserva.
+*   **Sistema de Comentarios por Reserva:**
+    *   Los administradores pueden agregar comentarios a una reserva (ej: "Recibí el comprobante de pago").
+    *   El cliente recibe una notificación por correo con el nuevo comentario.
+    *   Se pueden listar todos los comentarios de una reserva o del sistema completo.
+*   **Recordatorios de Reservas:** Un `job` programado se ejecuta diariamente para enviar recordatorios por correo a los clientes 24 horas antes de su evento y un resumen a los administradores con las reservas del día siguiente.
+
+### Desarrollo y Debugging
+*   **Logging Avanzado:**
+    *   En producción, **Morgan** guarda los logs en el archivo `stream.log`.
+    *   En desarrollo, se utiliza **Chalk** para colorear los logs en la consola, mejorando drásticamente la legibilidad.
+*   **Entornos Separados:** Se implementaron dos archivos `.env` (`.env.development` y `.env.production`) con valores de prueba para todas las funcionalidades, facilitando la configuración.
+*   **Arranque Seguro del Servidor:** La función `startServer` en `app.js` verifica que la conexión a la base de datos sea exitosa antes de levantar el servidor, evitando inconsistencias.
+*   **Simulación de Correos:** Se utiliza **Ethereal** en desarrollo para capturar y visualizar correos sin necesidad de configurar un servidor SMTP, agilizando las pruebas.
+*   **Listado de Rutas en Modo Debug:** Una función de depuración permite imprimir en consola todas las rutas registradas en la aplicación.
+*   **Script de Limpieza:** Se incluye un script `npm run clean` para limpiar la consola de manera multi-plataforma.
+
+### Rutas Públicas y de Testeo
+*   **Ruta de Bienvenida:** `GET /` (pública).
+*   **Ruta de Test de Correo:** `GET /api/auth/test-email` (protegida) para verificar la configuración de envío de correos.
+
 ## Arquitectura y Estructura del Proyecto
 
 El sistema está construido sobre una arquitectura de servicios moderna y con una clara separación de responsabilidades para facilitar su mantenimiento y escalabilidad.

@@ -1,22 +1,7 @@
-## Packages used:
 # Requerimientos de Software y Configuración
 
-### Testing
-- Eslint
-- Chalk
-- nodemon
 Este documento detalla el software, las dependencias y la configuración de base de datos necesarios para instalar y ejecutar la API del sistema de reservas.
 
-### Production
-- dotenv
-- express
-- mysql2
-- cors
-- compresion
-- morgan
-- jsonwebtoken
-- helmet
-- express-validator
 ## 1. Requerimientos del Sistema
 
 *   **Node.js:** Se recomienda la versión **18.x** o superior.
