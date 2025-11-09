@@ -1,4 +1,3 @@
-// src/app.js
 import express from 'express';
 import chalk from 'chalk';    // colores
 import dotenv from 'dotenv';  // variables de entorno
