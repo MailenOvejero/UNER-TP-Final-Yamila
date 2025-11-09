@@ -355,8 +355,13 @@
             loadingLogin.classList.add('show');
 
             try {
-                // Enviar datos vía POST a /login
-                const response = await fetch('/login', {
+                // Crear FormData para enviar los datos del formulario
+                const formData = new FormData();
+                formData.append('nombre_usuario', nombre_usuario);
+                formData.append('contrasenia', password);
+
+                // Enviar datos vía POST a /auth/login
+                const response = await fetch('/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
