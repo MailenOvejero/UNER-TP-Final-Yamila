@@ -1,4 +1,5 @@
 import { getDbPool } from '../config/db.js';
+import { CustomError } from '../utils/errorHandler.js';
 
 // get todas las reservas activas
 export const getAllReservas = async () => {
@@ -28,8 +29,7 @@ export const getReservasByUsuario = async (usuario_id) => {
 export const createReserva = async (data) => {
   const {
     fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, servicios,
-    // Se eliminan 'tematica' y 'foto_cumpleaniero' de la desestructuración
-    ruta_comprobante 
+    ruta_comprobante, foto_cumpleaniero = null, tematica = null
   } = data;
 
   const pool = getDbPool();
@@ -37,11 +37,10 @@ export const createReserva = async (data) => {
   try {
     await conn.beginTransaction();
 
-    //CORRECCIÓN: Se eliminan las columnas 'foto_cumpleaniero' y 'tematica' de la consulta INSERT
     const [result] = await conn.query(
-      `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, importe_total, ruta_comprobante)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, 0, ruta_comprobante]
+      `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, importe_total, ruta_comprobante, foto_cumpleaniero, tematica)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, 0, ruta_comprobante, foto_cumpleaniero, tematica]
     );
 
     const reserva_id = result.insertId;
@@ -92,6 +91,26 @@ export const getEstadisticasPorMes = async () => {
   const pool = getDbPool();
   const [rows] = await pool.query('CALL reservas_por_mes()');
   return rows[0];
+};
+
+// Verificar disponibilidad de reserva (x fecha y turno)
+export const verificarDisponibilidadReserva = async (fecha_reserva, salon_id, turno_id) => {
+  const pool = getDbPool();
+  
+  // Verificar si ya existe una reserva activa para la misma fecha, salón y turno
+  const [reservasExistentes] = await pool.query(
+    `SELECT r.* FROM reservas r 
+     WHERE r.fecha_reserva = ? 
+     AND r.salon_id = ? 
+     AND r.turno_id = ? 
+     AND r.activo = 1`,
+    [fecha_reserva, salon_id, turno_id]
+  );
+
+  return {
+    disponible: reservasExistentes.length === 0,
+    reservasExistentes
+  };
 };
 
 // get reservas para exportar a CSV
