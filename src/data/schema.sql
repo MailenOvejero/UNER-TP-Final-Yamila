@@ -1,355 +1,168 @@
--- Script Base de Datos Reservas
--- MySQL/MariaDB - Corregido para campos creado y modificado
+--
+-- Esquema de la base de datos 'reservas'
+-- Generado a partir del dump de MySQL.
+--
 
-DROP DATABASE IF EXISTS reservas;
-CREATE DATABASE reservas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE reservas;
+-- Se recomienda usar la base de datos 'reservas'
+-- USE reservas;
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+SET FOREIGN_KEY_CHECKS = 0; -- Deshabilitar temporalmente la verificación de FK para evitar problemas de dependencia en el orden de creación.
 
--- --------------------------------------------------------
--- Tabla: reservas
--- --------------------------------------------------------
-CREATE TABLE reservas (
-  reserva_id INT(11) NOT NULL AUTO_INCREMENT,
-  fecha_reserva DATE NOT NULL,
-  salon_id INT(11) NOT NULL,
-  usuario_id INT(11) NOT NULL,
-  turno_id INT(11) NOT NULL,
-  foto_cumpleaniero VARCHAR(255) DEFAULT NULL,
-  tematica VARCHAR(255) DEFAULT NULL,
-  importe_salon DECIMAL(10,2) DEFAULT NULL,
-  importe_total DECIMAL(10,2) DEFAULT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (reserva_id),
-  KEY reservas_fk2 (salon_id),
-  KEY reservas_fk3 (usuario_id),
-  KEY reservas_fk4 (turno_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO reservas (reserva_id, fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, importe_total, activo, creado, modificado) VALUES
-(1, '2025-10-08', 1, 1, 1, NULL, 'Plim plim', NULL, 200000.00, 1, '2025-08-19 22:02:33', '2025-08-19 22:02:33'),
-(2, '2025-10-08', 2, 1, 1, NULL, 'Messi', NULL, 100000.00, 1, '2025-08-19 22:03:45', '2025-08-19 22:03:45'),
-(3, '2025-10-08', 2, 2, 1, NULL, 'Palermo', NULL, 500000.00, 1, '2025-08-19 22:03:45', '2025-08-19 22:03:45');
-
--- --------------------------------------------------------
--- Tabla: reservas_servicios
--- --------------------------------------------------------
-CREATE TABLE reservas_servicios (
-  reserva_servicio_id INT(11) NOT NULL AUTO_INCREMENT,
-  reserva_id INT(11) NOT NULL,
-  servicio_id INT(11) NOT NULL,
-  importe DECIMAL(10,2) NOT NULL,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (reserva_servicio_id),
-  KEY reservas_servicios_fk1 (reserva_id),
-  KEY reservas_servicios_fk2 (servicio_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO reservas_servicios (reserva_servicio_id, reserva_id, servicio_id, importe, creado, modificado) VALUES
-(1, 1, 1, 50000.00, '2025-08-19 22:07:31', '2025-08-19 22:07:31'),
-(2, 1, 2, 50000.00, '2025-08-19 22:07:31', '2025-08-19 22:07:31'),
-(3, 1, 3, 50000.00, '2025-08-19 22:07:31', '2025-08-19 22:07:31'),
-(4, 1, 4, 50000.00, '2025-08-19 22:07:31', '2025-08-19 22:07:31'),
-(5, 2, 1, 50000.00, '2025-08-19 22:08:08', '2025-08-19 22:08:08'),
-(6, 2, 2, 50000.00, '2025-08-19 22:08:08', '2025-08-19 22:08:08'),
-(7, 3, 1, 100000.00, '2025-08-19 22:09:17', '2025-08-19 22:09:17'),
-(8, 3, 2, 100000.00, '2025-08-19 22:09:17', '2025-08-19 22:09:17'),
-(9, 3, 3, 100000.00, '2025-08-19 22:09:17', '2025-08-19 22:09:17'),
-(10, 3, 4, 200000.00, '2025-08-19 22:09:17', '2025-08-19 22:09:17');
-
--- --------------------------------------------------------
--- Tabla: salones
--- --------------------------------------------------------
+---
+## Estructura de la Tabla `salones`
+---
 CREATE TABLE salones (
-  salon_id INT(11) NOT NULL AUTO_INCREMENT,
-  titulo VARCHAR(255) NOT NULL,
-  direccion VARCHAR(255) NOT NULL,
+  salon_id INT NOT NULL AUTO_INCREMENT,
+  titulo VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  direccion VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   latitud DECIMAL(10,8) DEFAULT NULL,
   longitud DECIMAL(11,8) DEFAULT NULL,
-  capacidad INT(11) DEFAULT NULL,
+  capacidad INT DEFAULT NULL,
   importe DECIMAL(10,2) NOT NULL,
-  activo TINYINT(1) DEFAULT 1,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  activo TINYINT(1) DEFAULT '1',
+  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (salon_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO salones (salon_id, titulo, direccion, latitud, longitud, capacidad, importe, activo, creado, modificado) VALUES
-(1, 'Principal', 'San Lorenzo 1000', NULL, NULL, 200, 95000.00, 1, '2025-08-19 21:51:22', '2025-08-19 21:51:22'),
-(2, 'Secundario', 'San Lorenzo 1000', NULL, NULL, 70, 7000.00, 1, '2025-08-19 21:51:22', '2025-08-19 21:51:22'),
-(3, 'Cancha Fútbol 5', 'Alberdi 300', NULL, NULL, 50, 150000.00, 1, '2025-08-19 21:51:22', '2025-08-19 21:51:22'),
-(4, 'Maquina de Jugar', 'Peru 50', NULL, NULL, 100, 95000.00, 1, '2025-08-19 21:51:22', '2025-08-19 21:51:22'),
-(5, 'Trampolín Play', 'Belgrano 100', NULL, NULL, 70, 200000.00, 1, '2025-08-19 21:51:22', '2025-08-19 21:51:22');
-
--- --------------------------------------------------------
--- Tabla: servicios
--- --------------------------------------------------------
-CREATE TABLE servicios (
-  servicio_id INT(11) NOT NULL AUTO_INCREMENT,
-  descripcion VARCHAR(255) NOT NULL,
-  importe DECIMAL(10,2) NOT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (servicio_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO servicios (servicio_id, descripcion, importe, activo, creado, modificado) VALUES
-(1, 'Sonido', 15000.00, 1, '2025-08-19 21:47:55', '2025-08-19 21:47:55'),
-(2, 'Mesa dulce', 25000.00, 1, '2025-08-19 21:47:55', '2025-08-19 21:47:55'),
-(3, 'Tarjetas de invitación', 5000.00, 1, '2025-08-19 21:47:55', '2025-08-19 21:47:55'),
-(4, 'Mozos', 15000.00, 1, '2025-08-19 21:47:55', '2025-08-19 21:47:55'),
-(5, 'Sala de video juegos', 15000.00, 1, '2025-08-19 21:47:55', '2025-08-19 21:47:55'),
-(6, 'Mago', 25000.00, 1, '2025-08-20 21:31:00', '2025-08-20 21:31:00'),
-(7, 'Cabezones', 80000.00, 1, '2025-08-20 21:31:00', '2025-08-20 21:31:00'),
-(8, 'Maquillaje infantil', 1000.00, 1, '2025-08-20 21:31:00', '2025-08-20 21:31:00');
-
--- --------------------------------------------------------
--- Tabla: turnos
--- --------------------------------------------------------
+---
+## Estructura de la Tabla `turnos`
+---
 CREATE TABLE turnos (
-  turno_id INT(11) NOT NULL AUTO_INCREMENT,
-  orden INT(11) NOT NULL,
-  hora_desde TIME NOT NULL,
-  hora_hasta TIME NOT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (turno_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO turnos (turno_id, orden, hora_desde, hora_hasta, activo, creado, modificado) VALUES
-(1, 1, '12:00:00', '14:00:00', 1, '2025-08-19 21:44:19', '2025-08-19 21:44:19'),
-(2, 2, '15:00:00', '17:00:00', 1, '2025-08-19 21:46:08', '2025-08-19 21:46:08'),
-(3, 3, '18:00:00', '20:00:00', 1, '2025-08-19 21:46:08', '2025-08-19 21:46:08');
-
--- --------------------------------------------------------
--- Tabla: usuarios
--- --------------------------------------------------------
-CREATE TABLE usuarios (
-  usuario_id INT(11) NOT NULL AUTO_INCREMENT,
-  nombre VARCHAR(50) NOT NULL,
-  apellido VARCHAR(50) NOT NULL,
-  nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
-  contrasenia VARCHAR(255) NOT NULL,
-  tipo_usuario TINYINT(4) NOT NULL,
-  celular VARCHAR(20) DEFAULT NULL,
-  foto VARCHAR(255) DEFAULT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (usuario_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO usuarios (usuario_id, nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto, activo, creado, modificado) VALUES
-(1, 'Alberto', 'López', 'alblop@correo.com', 'cf584badd07d42dcb8506f8bae32aa96', 3, NULL, NULL, 1, '2025-08-19 21:37:51', '2025-08-19 21:37:51'),
-(2, 'Pamela', 'Gómez', 'pamgom@correo.com', '709ee61c97fc261d35aa2295e109b3fb', 3, NULL, NULL, 1, '2025-08-19 21:39:45', '2025-08-19 21:39:45'),
-(3, 'Esteban', 'Ciro', 'estcir@correo.com', 'da6541938e9afdcd420d1ccfc7cac2c7', 3, NULL, NULL, 1, '2025-08-19 21:41:50', '2025-08-19 21:41:50'),
-(4, 'Oscar', 'Ramirez', 'oscram@correo.com', '0ac879e8785ea5b3da6ff1333d8b0cf2', 1, NULL, NULL, 1, '2025-08-19 21:41:50', '2025-08-19 21:41:50'),
-(5, 'Claudia', 'Juárez', 'clajua@correo.com', '4f9dbdcf9259db3fa6a3f6164dd285de', 1, NULL, NULL, 1, '2025-08-19 21:41:50', '2025-08-19 21:41:50'),
-(6, 'William', 'Corbalán', 'wilcor@correo.com', 'f68087e72fbdf81b4174fec3676c1790', 2, NULL, NULL, 1, '2025-08-19 21:41:50', '2025-08-19 21:41:50'),
-(7, 'Anahí', 'Flores', 'anaflo@correo.com', 'd4e767c916b51b8cc5c909f5435119b1', 2, NULL, NULL, 1, '2025-08-19 21:41:50', '2025-08-19 21:41:50');
-
--- --------------------------------------------------------
--- Foreign Keys
--- --------------------------------------------------------
-ALTER TABLE reservas
-  ADD CONSTRAINT reservas_fk2 FOREIGN KEY (salon_id) REFERENCES salones (salon_id),
-  ADD CONSTRAINT reservas_fk3 FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id),
-  ADD CONSTRAINT reservas_fk4 FOREIGN KEY (turno_id) REFERENCES turnos (turno_id);
-
-ALTER TABLE reservas_servicios
-  ADD CONSTRAINT reservas_servicios_fk1 FOREIGN KEY (reserva_id) REFERENCES reservas (reserva_id),
-  ADD CONSTRAINT reservas_servicios_fk2 FOREIGN KEY (servicio_id) REFERENCES servicios (servicio_id);
-
-COMMIT;
-
-
-
-
-________________________________________________________
-DROP DATABASE IF EXISTS reservas;
-CREATE DATABASE reservas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE reservas;
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-CREATE TABLE usuarios (
-  usuario_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(50) NOT NULL,
-  apellido VARCHAR(50) NOT NULL,
-  nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
-  contrasenia VARCHAR(255) NOT NULL,
-  tipo_usuario TINYINT NOT NULL,
-  celular VARCHAR(20),
-  foto VARCHAR(255),
-  activo BOOLEAN NOT NULL DEFAULT TRUE,
-  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-INSERT INTO usuarios (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, activo)
-VALUES
-('Alberto', 'López', 'alblop@correo.com', 'cf584badd07d42dcb8506f8bae32aa96', 3, 1),
-('Pamela', 'Gómez', 'pamgom@correo.com', '709ee61c97fc261d35aa2295e109b3fb', 3, 1),
-('Esteban', 'Ciro', 'estcir@correo.com', 'da6541938e9afdcd420d1ccfc7cac2c7', 3, 1),
-('Oscar', 'Ramirez', 'oscram@correo.com', '0ac879e8785ea5b3da6ff1333d8b0cf2', 1, 1),
-('Claudia', 'Juárez', 'clajua@correo.com', '4f9dbdcf9259db3fa6a3f6164dd285de', 1, 1),
-('William', 'Corbalán', 'wilcor@correo.com', 'f68087e72fbdf81b4174fec3676c1790', 2, 1),
-('Anahí', 'Flores', 'anaflo@correo.com', 'd4e767c916b51b8cc5c909f5435119b1', 2, 1);
-
-CREATE TABLE turnos (
-  turno_id INT AUTO_INCREMENT PRIMARY KEY,
+  turno_id INT NOT NULL AUTO_INCREMENT,
   orden INT NOT NULL,
   hora_desde TIME NOT NULL,
   hora_hasta TIME NOT NULL,
-  activo BOOLEAN NOT NULL DEFAULT TRUE,
+  activo TINYINT(1) NOT NULL DEFAULT '1',
   creado DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (turno_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO turnos (orden, hora_desde, hora_hasta, activo)
-VALUES
-(1, '12:00:00', '14:00:00', 1),
-(2, '15:00:00', '17:00:00', 1),
-(3, '18:00:00', '20:00:00', 1);
-
-CREATE TABLE servicios (
-  servicio_id INT AUTO_INCREMENT PRIMARY KEY,
-  descripcion VARCHAR(255) NOT NULL,
-  importe DECIMAL(10,2) NOT NULL,
-  activo BOOLEAN NOT NULL DEFAULT TRUE,
+---
+## Estructura de la Tabla `usuarios`
+---
+CREATE TABLE usuarios (
+  usuario_id INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  apellido VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  nombre_usuario VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  password VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  tipo_usuario TINYINT NOT NULL,
+  celular VARCHAR(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  foto VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  activo TINYINT(1) NOT NULL DEFAULT '1',
   creado DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (usuario_id),
+  UNIQUE KEY nombre_usuario (nombre_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO servicios (descripcion, importe)
-VALUES
-('Sonido', 15000.00),
-('Mesa dulce', 25000.00),
-('Tarjetas de invitación', 5000.00),
-('Mozos', 15000.00),
-('Sala de video juegos', 15000.00),
-('Mago', 25000.00),
-('Cabezones', 80000.00),
-('Maquillaje infantil', 1000.00);
-
-CREATE TABLE salones (
-  salon_id INT AUTO_INCREMENT PRIMARY KEY,
-  titulo VARCHAR(255) NOT NULL,
-  direccion VARCHAR(255) NOT NULL,
-  latitud DECIMAL(10,8),
-  longitud DECIMAL(11,8),
-  capacidad INT,
-  importe DECIMAL(10,2) NOT NULL,
-  activo BOOLEAN DEFAULT TRUE,
-  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
-  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-INSERT INTO salones (titulo, direccion, capacidad, importe)
-VALUES
-('Principal', 'San Lorenzo 1000', 200, 95000.00),
-('Secundario', 'San Lorenzo 1000', 70, 7000.00),
-('Cancha Fútbol 5', 'Alberdi 300', 50, 150000.00),
-('Maquina de Jugar', 'Peru 50', 100, 95000.00),
-('Trampolín Play', 'Belgrano 100', 70, 200000.00);
-
+---
+## Estructura de la Tabla `reservas`
+---
 CREATE TABLE reservas (
-  reserva_id INT AUTO_INCREMENT PRIMARY KEY,
+  reserva_id INT NOT NULL AUTO_INCREMENT,
   fecha_reserva DATE NOT NULL,
   salon_id INT NOT NULL,
   usuario_id INT NOT NULL,
   turno_id INT NOT NULL,
-  foto_cumpleaniero VARCHAR(255),
-  tematica VARCHAR(255),
-  importe_salon DECIMAL(10,2),
-  importe_total DECIMAL(10,2),
-  activo BOOLEAN DEFAULT TRUE,
+  foto_cumpleaniero VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  tematica VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  ruta_comprobante VARCHAR(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  importe_salon DECIMAL(10,2) DEFAULT NULL,
+  importe_total DECIMAL(10,2) DEFAULT NULL,
+  activo TINYINT(1) DEFAULT '1',
   creado DATETIME DEFAULT CURRENT_TIMESTAMP,
   modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (salon_id) REFERENCES salones(salon_id),
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
-  FOREIGN KEY (turno_id) REFERENCES turnos(turno_id)
-) ENGINE=InnoDB;
+  PRIMARY KEY (reserva_id),
+  KEY salon_id (salon_id),
+  KEY usuario_id (usuario_id),
+  KEY turno_id (turno_id),
+  CONSTRAINT reservas_ibfk_1 FOREIGN KEY (salon_id) REFERENCES salones (salon_id),
+  CONSTRAINT reservas_ibfk_2 FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id),
+  CONSTRAINT reservas_ibfk_3 FOREIGN KEY (turno_id) REFERENCES turnos (turno_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, tematica, importe_total)
-VALUES
-('2025-10-08', 1, 1, 1, 'Plim plim', 200000.00),
-('2025-10-08', 2, 1, 1, 'Messi', 100000.00),
-('2025-10-08', 2, 2, 1, 'Palermo', 500000.00);
+---
+## Estructura de la Tabla `comentarios`
+---
+CREATE TABLE comentarios (
+  comentario_id INT NOT NULL AUTO_INCREMENT,
+  reserva_id INT NOT NULL,
+  usuario_id INT NOT NULL,
+  comentario TEXT NOT NULL,
+  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (comentario_id),
+  KEY reserva_id (reserva_id),
+  KEY usuario_id (usuario_id),
+  CONSTRAINT comentarios_fk_reserva FOREIGN KEY (reserva_id) REFERENCES reservas (reserva_id) ON DELETE CASCADE,
+  CONSTRAINT comentarios_fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+---
+## Estructura de la Tabla `encuestas`
+---
+CREATE TABLE encuestas (
+  encuesta_id INT NOT NULL AUTO_INCREMENT,
+  reserva_id INT NOT NULL,
+  usuario_id INT NOT NULL,
+  puntuacion TINYINT NOT NULL,
+  comentarios TEXT,
+  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (encuesta_id),
+  KEY reserva_id (reserva_id),
+  KEY usuario_id (usuario_id),
+  CONSTRAINT encuestas_fk_reserva FOREIGN KEY (reserva_id) REFERENCES reservas (reserva_id) ON DELETE CASCADE,
+  CONSTRAINT encuestas_fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (usuario_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+---
+## Estructura de la Tabla `invitados`
+---
+CREATE TABLE invitados (
+  invitado_id INT NOT NULL AUTO_INCREMENT,
+  reserva_id INT NOT NULL,
+  nombre VARCHAR(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  apellido VARCHAR(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  edad INT DEFAULT NULL,
+  email VARCHAR(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  creado TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  modificado TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  activo TINYINT(1) DEFAULT '1',
+  PRIMARY KEY (invitado_id),
+  KEY reserva_id (reserva_id),
+  CONSTRAINT invitados_ibfk_1 FOREIGN KEY (reserva_id) REFERENCES reservas (reserva_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+---
+## Estructura de la Tabla `servicios`
+---
+CREATE TABLE servicios (
+  servicio_id INT NOT NULL AUTO_INCREMENT,
+  descripcion VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  importe DECIMAL(10,2) NOT NULL,
+  activo TINYINT(1) NOT NULL DEFAULT '1',
+  creado DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (servicio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+---
+## Estructura de la Tabla `reservas_servicios`
+---
 CREATE TABLE reservas_servicios (
-  reserva_servicio_id INT AUTO_INCREMENT PRIMARY KEY,
+  reserva_servicio_id INT NOT NULL AUTO_INCREMENT,
   reserva_id INT NOT NULL,
   servicio_id INT NOT NULL,
   importe DECIMAL(10,2) NOT NULL,
   creado DATETIME DEFAULT CURRENT_TIMESTAMP,
   modificado DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (reserva_id) REFERENCES reservas(reserva_id),
-  FOREIGN KEY (servicio_id) REFERENCES servicios(servicio_id)
-) ENGINE=InnoDB;
+  PRIMARY KEY (reserva_servicio_id),
+  KEY reserva_id (reserva_id),
+  KEY servicio_id (servicio_id),
+  CONSTRAINT reservas_servicios_ibfk_1 FOREIGN KEY (reserva_id) REFERENCES reservas (reserva_id),
+  CONSTRAINT reservas_servicios_ibfk_2 FOREIGN KEY (servicio_id) REFERENCES servicios (servicio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO reservas_servicios (reserva_id, servicio_id, importe)
-VALUES
-(1, 1, 50000.00),
-(1, 2, 50000.00),
-(1, 3, 50000.00),
-(1, 4, 50000.00),
-(2, 1, 50000.00),
-(2, 2, 50000.00),
-(3, 1, 100000.00),
-(3, 2, 100000.00),
-(3, 3, 100000.00),
-(3, 4, 200000.00);
-
-COMMIT;
-
-
-
-UPDATE usuarios SET password = '$2b$10$uZKZzU7wKxZzU7wKxZzU7uZKZzU7wKxZzU7wKxZzU7wKxZzU7wKx' WHERE nombre_usuario = 'alblop@correo.com';
-UPDATE usuarios SET password = '$2b$10$A1B2C3D4E5F6G7H8I9J0Ka1B2C3D4E5F6G7H8I9J0Ka1B2C3D4E5' WHERE nombre_usuario = 'pamgom@correo.com';
-UPDATE usuarios SET password = '$2b$10$XxYyZzAaBbCcDdEeFfGgXxYyZzAaBbCcDdEeFfGgXxYyZzAaBbCc' WHERE nombre_usuario = 'estcir@correo.com';
-UPDATE usuarios SET password = '$2b$10$LmNoPqRsTuVwXyZaBcDeLmNoPqRsTuVwXyZaBcDeLmNoPqRsTuVw' WHERE nombre_usuario = 'oscram@correo.com';
-UPDATE usuarios SET password = '$2b$10$QqWwEeRrTtYyUuIiOoPpQqWwEeRrTtYyUuIiOoPpQqWwEeRrTtYy' WHERE nombre_usuario = 'clajua@correo.com';
-UPDATE usuarios SET password = '$2b$10$ZzXxCcVvBbNnMmLlKkJjZzXxCcVvBbNnMmLlKkJjZzXxCcVvBbNn' WHERE nombre_usuario = 'wilcor@correo.com';
-UPDATE usuarios SET password = '$2b$10$AaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFfGgHhIiJjAaBbCcDdEeFf' WHERE nombre_usuario = 'anaflo@correo.com';
-
-contraseñas bcrypt
-
-
-
-
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'alblop@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'pamgom@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'estcir@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'oscram@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'clajua@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'wilcor@correo.com';
-UPDATE usuarios SET password = '$2b$10$N3FKTz2yaN4VmmMfZbCBpuxkb6bZZ9vCu2SPNfAM6x6QGpdGwb7eS' WHERE nombre_usuario = 'anaflo@correo.com';
-
-
-
-------
-PARA GENERAR EL NUEVO HASH: 
-1 - node
-2 - require('bcrypt').hash('123456', 10).then(console.log);
-
-RESPUESTA EN CONSOLA : 
- <pending>, [Symbol(async_id_symbol)]: 50, [Symbol(trigger_async_id_symbol)]: 48 } > $2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm
-
- Y ACTUALICÉ LA BASE CON ESTO: 
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'alblop@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'pamgom@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'estcir@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'oscram@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'clajua@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'wilcor@correo.com';
-UPDATE usuarios SET password = '$2b$10$wYl7cpr.Fv.ydkmBTR9ddeJVxfIC2FH2EH5fl0G05KGvD/GnoyUDm' WHERE nombre_usuario = 'anaflo@correo.com';
+SET FOREIGN_KEY_CHECKS = 1; -- Habilitar nuevamente la verificación de FK.

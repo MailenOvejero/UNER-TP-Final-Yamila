@@ -1,6 +1,6 @@
-# API de Sistema de Reservas
+# API de Sistema de Reservas para Eventos
 
-Este documento proporciona las instrucciones necesarias para configurar y ejecutar el proyecto de API RESTful para un sistema de gestión de reservas.
+Este documento proporciona una guía completa para configurar, ejecutar y entender el proyecto de API RESTful para un sistema avanzado de gestión de reservas.
 
 **Autores:**
 * Yamila Mailen Overjero
@@ -8,7 +8,7 @@ Este documento proporciona las instrucciones necesarias para configurar y ejecut
 
 ## Descripción del Proyecto
 
-El proyecto es una API backend desarrollada en Node.js con Express, diseñada para gestionar las operaciones de un negocio de reservas, como salones para eventos. Implementa una arquitectura por capas, un sistema de seguridad robusto basado en roles y tokens JWT, y diversas funcionalidades para la administración de usuarios, salones, servicios y reservas.
+El proyecto es una API backend robusta y escalable, desarrollada en **Node.js con Express**, diseñada para gestionar integralmente las operaciones de un negocio de reservas de salones para eventos. La API no solo cubre las operaciones CRUD básicas, sino que también implementa una arquitectura por capas, un sistema de seguridad avanzado con migración de hashes, y un amplio abanico de funcionalidades que automatizan y mejoran la gestión del negocio y la experiencia del cliente.
 
 ## Arquitectura y Estructura del Proyecto
 
@@ -16,10 +16,11 @@ El sistema está construido sobre una arquitectura de servicios moderna y con un
 
 ### Arquitectura por Capas
 
-1.  **Rutas (Routes):** Definen los endpoints de la API (ej. `/api/v1/reservas`). Asocian cada ruta con los middlewares de seguridad y los controladores correspondientes.
-2.  **Controladores (Controllers):** Orquestan el flujo de la petición. Reciben la solicitud, validan los datos de entrada, llaman a los servicios de negocio y formulan la respuesta HTTP (éxito o error). No contienen lógica de negocio ni acceso a la base de datos.
-3.  **Servicios (Services):** Contienen la lógica de negocio principal de la aplicación. Actúan como intermediarios entre los controladores y la capa de acceso a datos, procesando la información y aplicando las reglas del negocio.
-4.  **Datos (Data):** Es la capa de acceso a datos. Contiene la lógica para interactuar directamente con la base de datos MySQL, ejecutando las consultas SQL necesarias (CRUD).
+1.  **Rutas (Routes):** Definen los endpoints de la API (ej. `/api/v1/reservas`). Asocian cada ruta con sus middlewares de seguridad, validación y controladores.
+2.  **Controladores (Controllers):** Orquestan el flujo de la petición. Reciben la solicitud, validan los datos de entrada (`express-validator`), llaman a los servicios de negocio y formulan la respuesta HTTP. No contienen lógica de negocio ni acceso directo a la base de datos.
+3.  **Servicios (Services):** Contienen la lógica de negocio principal. Actúan como intermediarios entre los controladores y la capa de datos, aplicando reglas y procesando la información.
+4.  **Datos (Data):** Capa de acceso a datos. Contiene la lógica para interactuar directamente con la base de datos MySQL, ejecutando consultas SQL (CRUD) y procedimientos almacenados.
+5.  **Jobs (Tareas Programadas):** Módulos independientes que ejecutan tareas recurrentes (ej. envío de recordatorios) utilizando `node-cron`.
 
 ### Estructura de Archivos
 
