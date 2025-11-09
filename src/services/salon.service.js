@@ -1,4 +1,3 @@
-// swc/service/salon.service.js
 import {
   getAllSalones,
   getSalonById,
@@ -7,27 +6,27 @@ import {
   deleteSalon
 } from '../data/salon.data.js';
 
-// Listar salones con paginación
+// listar salones + paginación
 export const listarSalones = async (options) => {
   return await getAllSalones(options);
 };
 
-// Obtener salón por ID
+// salón por ID
 export const obtenerSalon = async (id) => {
   return await getSalonById(id);
 };
 
-// Crear nuevo salón
+// crear salón
 export const crearSalon = async (datos) => {
   return await createSalon(datos);
 };
 
-// Actualizar salón
+// actualizar salón
 export const actualizarSalon = async (id, datos) => {
   return await updateSalon(id, datos);
 };
 
-// Eliminar salón (soft delete)
+// (soft delete)
 export const eliminarSalon = async (id) => {
   return await deleteSalon(id);
 };

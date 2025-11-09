@@ -1,6 +1,4 @@
-// src/scripts/clean-console.js
-// Limpia la consola antes de iniciar el servidor (opcional)
-
+//limpiamos consola antes de que inicie el server
 try {
   console.clear();
   console.log("🧹 Consola limpia. Iniciando servidor...");

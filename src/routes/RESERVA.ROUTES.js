@@ -38,9 +38,8 @@ import { uploadComprobante } from '../middlewares/upload.middleware.js';
 const router = Router();
 router.use(verifyToken);
 
-// ============================================================
-// RUTAS CLIENTE
-// ============================================================
+// ----- RUTAS CLIENTE -----
+
 
 /**
  * @swagger
@@ -65,9 +64,8 @@ router.get(
   getReservasDelCliente
 );
 
-// ============================================================
-// RUTAS ADMIN/EMPLEADO
-// ============================================================
+// ----- RUTAS ADMIN/EMPLEADO -----
+
 
 /**
  * @swagger
@@ -92,9 +90,9 @@ router.get(
   getReservas
 );
 
-// ============================================================
-// CREAR RESERVA (CLIENTE CON COMPROBANTE)
-// ============================================================
+
+// ----- CREAR RESERVA (CLIENTE CON COMPROBANTE) -----
+
 
 /**
  * @swagger
@@ -151,9 +149,8 @@ router.post(
   createReservaConComprobante
 );
 
-// ============================================================
-// REPORTES Y ESTADÍSTICAS
-// ============================================================
+// ------ REPORTES Y ESTADÍSTICAS -----
+
 
 /**
  * @swagger
@@ -428,9 +425,8 @@ router.get('/:id/csv', authorize([ROLES.ADMIN]), descargarCSVReservaPorId);
  */
 router.get('/:id/pdf', authorize([ROLES.ADMIN]), generarReportePDF);
 
-// ============================================================
-// RUTAS ESPECÍFICAS POR ID
-// ============================================================
+// ----- RUTAS ESPECÍFICAS POR ID -----
+
 
 /**
  * @swagger

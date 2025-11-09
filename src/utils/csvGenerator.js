@@ -2,7 +2,7 @@ import { Parser } from 'json2csv';
 import fs from 'fs';
 
 
-//funcion para generar csv 
+//Generamos los CSV con estos campos
 export const generarCSVReservas = (reservas, path) => {
   const fields = [
     'reserva_id',

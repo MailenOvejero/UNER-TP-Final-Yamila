@@ -35,20 +35,18 @@ export const getReservasDelCliente = async (req, res, next) => {
   }
 };
 
-// ----------------------------------------------------
-// FUNCIÓN MODIFICADA PARA MANEJAR COMPROBANTES DE PAGO
-// ----------------------------------------------------
+// ojo, ---- > FUNCIÓN MODIFICADA PARA MANEJAR COMPROBANTES DE PAGO
 const createReservaConComprobante = async (req, res, next) => {
   try {
-    // 1. Manejo del archivo subido por Multer
+    // manejo del archivo subido por Multer
     const rutaComprobante = req.file ? req.file.path : null;
 
-    // 2. Validación: el comprobante debe ser obligatorio
+    // validación, el comprobante debe ser obligatorio
     if (!rutaComprobante) {
       return res.status(400).json({ error: 'El comprobante de pago es obligatorio.' });
     }
 
-    // 3. Parseo de datos de texto. En multipart/form-data, todos los campos llegan como string.
+    // parseo de datos de texto, porque en multipart/form-data, todos los campos llegan como string.
     const datosReserva = {
       ...req.body,
       servicios: req.body.servicios ? JSON.parse(req.body.servicios) : [],
@@ -56,14 +54,14 @@ const createReservaConComprobante = async (req, res, next) => {
       ruta_comprobante: rutaComprobante,
     };
     
-    // 4. Crear la reserva
+    // creo la reserva
     const nuevaReserva = await reservaService.crearReserva(datosReserva);
 
     const { reserva_id } = nuevaReserva;
 
     const pool = getDbPool();
 
-    // Obtener datos completos de la reserva recién creada
+    // obtengo datos completos de la reserva
     const [rows] = await pool.query(`
       SELECT 
         r.fecha_reserva,
@@ -84,7 +82,7 @@ const createReservaConComprobante = async (req, res, next) => {
 
     const reserva = rows[0];
 
-    // Armar mensaje personalizado
+    // personalizo el mensaje
     const mensaje = `
       Hola ${reserva.nombre} ${reserva.apellido},<br><br>
       Tu reserva fue confirmada para el día ${reserva.fecha_reserva} en el salón "${reserva.salon}".<br>
@@ -95,14 +93,14 @@ const createReservaConComprobante = async (req, res, next) => {
       Gracias por confiar en nosotros 🎉
     `;
 
-    // Enviar correo al cliente
+    // notifico
     await enviarNotificacionReserva({
       destinatario: reserva.email,
       asunto: 'Confirmación de reserva',
       mensaje,
     });
 
-    // ---- Notificación a administradores ----
+    // ----  a TODOS los adminis activos ----
     try {
       const [admins] = await pool.query(`
         SELECT nombre_usuario AS email FROM usuarios WHERE tipo_usuario = 1 AND activo = 1
@@ -123,7 +121,6 @@ const createReservaConComprobante = async (req, res, next) => {
     } catch (adminQueryErr) {
       console.error('[NOTIFICACIÓN] Error obteniendo correos de administradores:', adminQueryErr.message);
     }
-    // ------------------------------------------------
 
     apicacheInstance.clear();
     res.status(201).json(nuevaReserva);
@@ -131,10 +128,8 @@ const createReservaConComprobante = async (req, res, next) => {
     next(error);
   }
 };
-// ----------------------------------------------------
-// FIN FUNCIÓN MODIFICADA
-// ----------------------------------------------------
 
+//  actualizar reserva
 export const updateReserva = async (req, res, next) => {
   try {
     const actualizada = await reservaService.actualizarReserva(req.params.id, req.body);
@@ -144,7 +139,7 @@ export const updateReserva = async (req, res, next) => {
     next(error);
   }
 };
-
+// (softdelete)
 export const deleteReserva = async (req, res, next) => {
   try {
     await reservaService.eliminarReserva(req.params.id);
@@ -191,24 +186,24 @@ export const generarReportePDF = async (req, res, next) => {
 
     const pool = getDbPool();
 
-    // Obtener cliente
+    // get cliente
     const [[cliente]] = await pool.query(`
       SELECT CONCAT(nombre, ' ', apellido) AS cliente
       FROM usuarios
       WHERE usuario_id = ?
     `, [reserva.usuario_id]);
 
-    // Obtener salón
+    // get salón
     const [[salon]] = await pool.query(`
       SELECT titulo FROM salones WHERE salon_id = ?
     `, [reserva.salon_id]);
 
-    // Obtener turno
+    // get turno
     const [[turno]] = await pool.query(`
       SELECT hora_desde, hora_hasta FROM turnos WHERE turno_id = ?
     `, [reserva.turno_id]);
 
-    // Obtener servicios
+    // get servicios
     const [servicios] = await pool.query(`
       SELECT s.descripcion, rs.importe
       FROM reservas_servicios rs
@@ -216,7 +211,7 @@ export const generarReportePDF = async (req, res, next) => {
       WHERE rs.reserva_id = ?
     `, [reserva_id]);
 
-    // Armar objeto completo para el PDF
+    // armao el objeto completo para el PDF
     const reservaCompleta = {
       cliente: cliente.cliente,
       salon: salon.titulo,
@@ -236,9 +231,7 @@ export const generarReportePDF = async (req, res, next) => {
   }
 };
 
-// ====================================================
-// 📦 NUEVOS ENDPOINTS PROFESIONALES PARA DESCARGAR CSV
-// ====================================================
+// 📦ENDPOINTS PROF PARA DESCARGAR CSV
 
 // Descargar todas las reservas en CSV
 export const descargarCSVReservas = async (req, res, next) => {
@@ -306,7 +299,7 @@ export const descargarCSVReservaPorId = async (req, res, next) => {
 // Se exporta la función original como alias para que RESERVA.ROUTES.js pueda usarla
 export { createReservaConComprobante as createReserva };
 
-// ----------------- COMENTARIOS -----------------
+// ------ COMENTARIOS ---------
 export const agregarComentario = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;
@@ -336,7 +329,7 @@ export const listarComentarios = async (req, res, next) => {
   }
 };
 
-// ----------------- ENCUESTAS -----------------
+// -------- ENCUESTAS -------
 export const agregarEncuesta = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;
@@ -360,7 +353,7 @@ export const listarEncuestas = async (req, res, next) => {
     next(error);
   }
 };
-// ----------------- NUEVAS FUNCIONES MEJORADAS -----------------
+// ------- NUEVAS FUNCIONES MEJORADAS -------
 
 // ✅ Listar TODAS las encuestas (para admin o empleado)
 export const listarTodasEncuestas = async (req, res, next) => {
@@ -384,7 +377,7 @@ export const listarTodasEncuestas = async (req, res, next) => {
   }
 };
 
-// ✅ Listar TODOS los comentarios (para admin o empleado)
+// Listar TODOS los comentarios (para admin o empleado)
 export const listarTodosComentarios = async (req, res, next) => {
   try {
     const pool = getDbPool();
@@ -406,7 +399,7 @@ export const listarTodosComentarios = async (req, res, next) => {
   }
 };
 
-// ✅ Notificación automática cuando el admin deja un comentario
+// Notificación automática cuando el admin deja un coment
 export const agregarComentarioConNotificacion = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;
@@ -420,7 +413,7 @@ export const agregarComentarioConNotificacion = async (req, res, next) => {
     const nuevo = await reservaService.agregarComentario({ reserva_id, usuario_id, comentario });
     const pool = getDbPool();
 
-    // Obtener email del cliente
+    // get mail del cliente
     const [[cliente]] = await pool.query(`
       SELECT u.nombre, u.apellido, u.nombre_usuario AS email
       FROM reservas r
@@ -448,7 +441,7 @@ export const agregarComentarioConNotificacion = async (req, res, next) => {
   }
 };
 
-// ✅ Notificación automática cuando el cliente completa la encuesta
+// Notificación automática cuando el cliente completa la encuesta
 export const agregarEncuestaConNotificacion = async (req, res, next) => {
   try {
     const reserva_id = req.params.id;
@@ -483,9 +476,9 @@ export const agregarEncuestaConNotificacion = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};// ------------------ INVITADOS (dentro de reserva.controller.js) ------------------
+};
 
-// Funciones "service" integradas acá mismo
+// Funciones "service" integradas 
 const agregarInvitadoDB = async ({ reserva_id, nombre, apellido, edad, email }) => {
   const pool = getDbPool();
   const [result] = await pool.query(
@@ -523,7 +516,6 @@ const eliminarInvitadoDB = async (invitado_id) => {
   return { invitado_id, message: 'Invitado eliminado (soft delete)' };
 };
 
-// ------------------ CONTROLLERS ------------------
 
 // Agregar uno o varios invitados a una reserva
 export const agregarInvitados = async (req, res, next) => {
@@ -532,8 +524,8 @@ export const agregarInvitados = async (req, res, next) => {
     const usuario_id = req.user.id;
     const pool = getDbPool();
 
-    // --- INICIO DE VERIFICACIÓN DE PERMISO ---
-    // Verificar que la reserva exista y pertenezca al usuario logueado
+
+    // Verifico => la reserva exista + pertenezca al usuario logueado
     const [reservaRows] = await pool.query(
       `SELECT reserva_id FROM reservas WHERE reserva_id = ? AND usuario_id = ? AND activo = 1`,
       [reserva_id, usuario_id]
@@ -542,8 +534,7 @@ export const agregarInvitados = async (req, res, next) => {
     if (!reservaRows || reservaRows.length === 0) {
       return res.status(404).json({ message: 'Reserva no encontrada o no tienes permiso para agregar invitados.' });
     }
-    // --- FIN DE VERIFICACIÓN ---
-
+ 
     let invitados = req.body; // Puede ser un objeto o un array de invitados
 
     if (!Array.isArray(invitados)) invitados = [invitados];
@@ -563,7 +554,7 @@ export const agregarInvitados = async (req, res, next) => {
   }
 };
 
-// Listar invitados de una reserva
+// listar invitados en una reserva
 export const listarInvitadosReserva = async (req, res, next) => {
   try {
     const { reserva_id } = req.params;
@@ -571,9 +562,8 @@ export const listarInvitadosReserva = async (req, res, next) => {
     const userRole = req.user.role;
     const pool = getDbPool();
 
-    // --- INICIO DE VERIFICACIÓN DE PERMISO ---
-    // Si el usuario no es Admin/Empleado, verificar que sea el dueño de la reserva
-    if (userRole !== 1 && userRole !== 2) { // Asumiendo 1=ADMIN, 2=EMPLEADO
+    // Si el usuario no es Admin/Empleado, verifico que sea el dueño de la reserva
+    if (userRole !== 1 && userRole !== 2) { // Asumo 1=ADMIN, 2=EMPLEADO
       const [reservaRows] = await pool.query(
         `SELECT reserva_id FROM reservas WHERE reserva_id = ? AND usuario_id = ? AND activo = 1`,
         [reserva_id, usuario_id]
@@ -582,7 +572,6 @@ export const listarInvitadosReserva = async (req, res, next) => {
         return res.status(404).json({ message: 'Reserva no encontrada o no tienes permiso para ver los invitados.' });
       }
     }
-    // --- FIN DE VERIFICACIÓN ---
 
     const invitados = await listarInvitadosDB(reserva_id);
     res.status(200).json(invitados);
@@ -591,13 +580,13 @@ export const listarInvitadosReserva = async (req, res, next) => {
   }
 };
 
-//Actualizar datds de invitado
+//Actualizo datds de invitado
 export const actualizarInvitado = async (req, res, next) => {
   try {
     const { reserva_id, invitado_id } = req.params;
     const pool = getDbPool();
 
-    // Verificar que el invitado exista y pertenezca al cliente logueado
+    // Verificao que el invitado exista y pertenezca al cliente logueado
     const [rows] = await pool.query(`
       SELECT i.invitado_id
       FROM invitados i
@@ -606,7 +595,6 @@ export const actualizarInvitado = async (req, res, next) => {
     `, [reserva_id, invitado_id, req.user.id]);
 
     if (!rows || rows.length === 0) {
-      // ⚠️ Si no lo encuentra, devuelve 404
       return res.status(404).json({ message: 'Invitado no encontrado o no tenés permiso.' });
     }
 
@@ -634,13 +622,13 @@ export const actualizarInvitado = async (req, res, next) => {
 };
 
 
-// Eliminar invitado (soft delete)
+// (softDelete)
 export const eliminarInvitado = async (req, res, next) => {
   try {
     const { reserva_id, invitado_id } = req.params;
     const pool = getDbPool();
 
-    // Verificar que el invitado exista y pertenezca al cliente logueado
+    // Verifico que el invitado exista y pertenezca al cliente logueado
     const [rows] = await pool.query(`
       SELECT i.invitado_id
       FROM invitados i
@@ -649,7 +637,7 @@ export const eliminarInvitado = async (req, res, next) => {
     `, [reserva_id, invitado_id, req.user.id]);
 
     if (!rows || rows.length === 0) {
-      // ⚠️ Aquí está la clave: si el SELECT no encuentra nada, no se puede borrar
+      // Ojo, si el SELECT no encuentra nada, no se puede borrar
       return res.status(404).json({ message: 'Invitado no encontrado o no tenés permiso.' });
     }
 

@@ -26,9 +26,8 @@ import { notFound, errorHandler } from './middlewares/index.js';
 
 const app = express();
 
-// ************************************************************
-// CONFIGURACIÓN
-// ************************************************************
+
+// -------- CONFIG --------
 
 // Settings de aplicación
 app.set('host', process.env.HOST || '127.0.0.1');
@@ -37,34 +36,32 @@ app.set('app name', 'API Rest');
 app.set('version', '1.0.0');
 app.set('env', process.env.NODE_ENV || 'development');
 
-// seguridad
+// -------- seguridad --------
 app.use(helmet());
 
-// ************************************************************
-// MIDDLEWARES GLOBALES (Orden Lógico de Ejecución)
-// ************************************************************
+
+// -------- MIDDLEWARES GLOBALES (Respetar el Orden) --------
 
 // Logging
 const morganMiddleware = setupLogging(app.get('env'));
 
-// Rendimiento
 app.use(compression());
 
-// Seguridad de dominios
+// Multiples dominios
 app.use(cors());
 
-// Body parsers
+// Body parsers, el urlencodded no lo llegamos a usar, pero lo dejamos
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// ************************************************************
-// DOCUMENTACIÓN SWAGGER
-// ************************************************************
-setupSwagger(app); // Se monta antes del middleware JWT
 
-// ************************************************************
-// RUTA DE BIENVENIDA (Pública)
-// ************************************************************
+// -------- DOCUMENTACIÓN SWAGGER --------
+
+setupSwagger(app); // Va antes de  JWT
+
+
+// RUTA test de bienvenida (Pública)
+
 app.get("/", (req, res) => {
   const appName = app.get('app name');
   const version = app.get('version');
@@ -81,9 +78,10 @@ app.get("/", (req, res) => {
   `);
 });
 
-// ************************************************************
-// MIDDLEWARE DE AUTENTICACIÓN (JWT Check)
-// ************************************************************
+
+// MIDDLEWARE DE AUTENTICACIÓN (JWT Check) ->  usamos algunas excxepciones puntuales
+// Si tuviera un front definido ya podriamos armar un ruter publico bien definido e incluirlas con nuevas funcionalidades
+
 app.use((req, res, next) => {
   const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
   const isSwagger = req.originalUrl.includes('/docs') || req.originalUrl.includes('/api-docs');
@@ -95,16 +93,14 @@ app.use((req, res, next) => {
     return next();
   }
 
-  verifyToken(req, res, next); // todas las demás rutas requieren token
+  verifyToken(req, res, next); // el resto de las rutas requieren token
 });
 
-// ************************************************************
-// RUTA CENTRAL DE LA API
-// ************************************************************
+// -------- Nuestra RUTA CENTRAL -------- 
 app.use('/api', apiRouter);
 
 // ************************************************************
-// DEBUG: Mostrar todas las rutas registradas
+// -------- DEBUG: Ver todas las rutas registradas -------- 
 // ************************************************************
 if (app._router && app._router.stack) {
   app._router.stack.forEach((r) => {
@@ -119,25 +115,26 @@ if (app._router && app._router.stack) {
   });
 }
 
-// ************************************************************
-// MIDDLEWARES DE CIERRE
-// ************************************************************
+
+// -------- Manejo de errores con notificaciones por mail -------- 
+
 app.use(notFound);    // Página personalizada de error 404
 app.use(errorHandler);// Página personalizada de error 500
 
-// ************************************************************
-// INICIO DEL SERVIDOR ASÍNCRONO
-// ************************************************************
+
+// -------- Con esto el server espera a que inicialice la DB para iniciar express --------
+// -------- Se implemento asi porque en linux al iniciar la DB manualmente si uno se olvidaba habia error -------
+// -------- Podemos decir que es una mejora, esto podria pasar si la DB estuviera lojada en otro server -------
+
 async function startServer() {
   try {
-    // Inicializar pool de la base de datos
     await initializeDbPool();
 
-    // Ejecutar job de encuestas después de inicializar el pool
+    // Ejecutamos el job de encuestas inmediatamente después de inicializar el pool de la DB!
     const { iniciarJobEncuestas } = await import('./jobs/enviarEncuestas.job.js');
     iniciarJobEncuestas();
 
-    // Iniciar Express
+    // Iniciamos Express normalmente
     app.listen(app.get('port'), app.get('host'), (error) => {
       if (error) throw error;
       console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));

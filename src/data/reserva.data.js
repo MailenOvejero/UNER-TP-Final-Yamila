@@ -1,21 +1,20 @@
 import { getDbPool } from '../config/db.js';
 
-
-// Obtener todas las reservas activas
+// get todas las reservas activas
 export const getAllReservas = async () => {
   const pool = getDbPool();
   const [rows] = await pool.query('SELECT * FROM reservas WHERE activo = 1');
   return rows;
 };
 
-// Obtener una reserva por ID
+// get reserva por ID
 export const getReservaById = async (id) => {
   const pool = getDbPool();
   const [rows] = await pool.query('SELECT * FROM reservas WHERE reserva_id = ? AND activo = 1', [id]);
   return rows[0];
 };
 
-// Obtener reservas por usuario
+// get reservas por usuario
 export const getReservasByUsuario = async (usuario_id) => {
   const pool = getDbPool();
   const [rows] = await pool.query(
@@ -25,7 +24,7 @@ export const getReservasByUsuario = async (usuario_id) => {
   return rows;
 };
 
-// Crear una nueva reserva con servicios asociados
+// crear reserva + servicios asociados
 export const createReserva = async (data) => {
   const {
     fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, servicios,
@@ -38,7 +37,7 @@ export const createReserva = async (data) => {
   try {
     await conn.beginTransaction();
 
-    // ➡️ CORRECCIÓN: Se eliminan las columnas 'foto_cumpleaniero' y 'tematica' de la consulta INSERT
+    //CORRECCIÓN: Se eliminan las columnas 'foto_cumpleaniero' y 'tematica' de la consulta INSERT
     const [result] = await conn.query(
       `INSERT INTO reservas (fecha_reserva, salon_id, usuario_id, turno_id, importe_salon, importe_total, ruta_comprobante)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -74,28 +73,28 @@ export const createReserva = async (data) => {
   }
 };
 
-// Actualizar una reserva
+// cctualizar reserva
 export const updateReserva = async (id, data) => {
   const pool = getDbPool();
-  // Esta función ya es flexible y manejaría 'ruta_comprobante' si se pasa en el data
+  // esta función ya maneja 'ruta_comprobante' si se pasa en el data
   await pool.query('UPDATE reservas SET ? WHERE reserva_id = ?', [data, id]); 
   return { message: 'Reserva actualizada' };
 };
 
-// Eliminación lógica (soft delete)
+// (soft delete)
 export const softDeleteReserva = async (id) => {
   const pool = getDbPool();
   await pool.query('UPDATE reservas SET activo = 0 WHERE reserva_id = ?', [id]);
 };
 
-// Obtener estadísticas por mes (usando procedimiento almacenado)
+// get estadísticas por mes (usando "procedimiento almacenado")
 export const getEstadisticasPorMes = async () => {
   const pool = getDbPool();
   const [rows] = await pool.query('CALL reservas_por_mes()');
   return rows[0];
 };
 
-// Obtener reservas para exportar a CSV
+// get reservas para exportar a CSV
 export const getReservasCSV = async () => {
   const pool = getDbPool();
   const [rows] = await pool.query(`
@@ -116,7 +115,7 @@ export const getReservasCSV = async () => {
   return rows;
 };
 
-// ----------------- COMENTARIOS -----------------
+// ------- SITEMA DE COMENTARIOS -------
 export const createComentario = async ({ reserva_id, usuario_id, comentario }) => {
   const pool = getDbPool();
   const [result] = await pool.query(
@@ -140,7 +139,7 @@ export const getComentariosByReserva = async (reserva_id) => {
   return rows;
 };
 
-// ----------------- ENCUESTAS -----------------
+// ------- ENCUESTAS ---------
 export const createEncuesta = async ({ reserva_id, usuario_id, puntuacion, comentarios }) => {
   const pool = getDbPool();
   const [result] = await pool.query(

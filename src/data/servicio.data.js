@@ -1,15 +1,14 @@
-// swc/data/servicio.data.js
 import { getDbPool } from '../config/db.js';
 
 
-// Obtener todos los servicios activos
+// get servicios activos
 export const getAllServicios = async () => {
   const pool = getDbPool();
   const [rows] = await pool.query('SELECT * FROM servicios WHERE activo = 1');
   return rows;
 };
 
-// Obtener un servicio por ID
+// get servicio por ID
 export const getServicioById = async (id) => {
   const pool = getDbPool();
   const [rows] = await pool.query(
@@ -19,7 +18,7 @@ export const getServicioById = async (id) => {
   return rows[0];
 };
 
-// Crear un nuevo servicio
+// crear servicio
 export const createServicio = async ({ descripcion, importe }) => {
   const pool = getDbPool();
   const [result] = await pool.query(
@@ -29,7 +28,7 @@ export const createServicio = async ({ descripcion, importe }) => {
   return result.insertId;
 };
 
-// Actualizar un servicio existente
+// actualizar servicio
 export const updateServicio = async (id, { descripcion, importe, activo }) => {
   const pool = getDbPool();
   const [result] = await pool.query(
@@ -39,7 +38,7 @@ export const updateServicio = async (id, { descripcion, importe, activo }) => {
   return result.affectedRows;
 };
 
-// Soft delete de un servicio
+// (softDelete)
 export const deleteServicio = async (id) => {
   const pool = getDbPool();
   const [result] = await pool.query(

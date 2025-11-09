@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 
-// creo función para PDF
+// Creo función para los PDF
 export const generarPDFReserva = (reserva, path) => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument();
@@ -31,7 +31,7 @@ export const generarPDFReserva = (reserva, path) => {
 
     doc.end();
 
-    // Esperar a que el archivo se termine de escribir
+    // Espero a que el archivo se termine de escribir para
     stream.on('finish', () => resolve());
     stream.on('error', (err) => reject(err));
   });

@@ -2,9 +2,7 @@ import * as turnoService from '../services/turno.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
 
-/**
- * Obtener todos los turnos activos
- */
+// get turnos activos
 export const getTurnos = async (req, res, next) => {
   try {
     const turnos = await turnoService.listarTurnos(); // nombre corregido
@@ -14,9 +12,7 @@ export const getTurnos = async (req, res, next) => {
   }
 };
 
-/**
- * Obtener un turno por ID
- */
+// turno por ID
 export const getTurno = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
@@ -29,9 +25,7 @@ export const getTurno = async (req, res, next) => {
   }
 };
 
-/**
- * Crear un nuevo turno
- */
+// crear turno
 export const createTurno = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
@@ -44,9 +38,7 @@ export const createTurno = async (req, res, next) => {
   }
 };
 
-/**
- * Actualizar un turno existente
- */
+//  Actualizar turno
 export const updateTurno = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
@@ -62,9 +54,7 @@ export const updateTurno = async (req, res, next) => {
   }
 };
 
-/**
- * Eliminar (soft delete) un turno
- */
+//  (softDelete)
 export const deleteTurno = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));

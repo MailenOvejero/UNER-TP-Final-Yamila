@@ -2,7 +2,7 @@ import * as usuarioService from '../services/usuario.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
 
-
+// get usuarios
 export const getUsuarios = async (req, res, next) => {
   try {
     const usuarios = await usuarioService.getAll();
@@ -12,6 +12,7 @@ export const getUsuarios = async (req, res, next) => {
   }
 };
 
+// get usuario por id
 export const getUsuarioById = async (req, res, next) => {
   try {
     const usuario = await usuarioService.getUsuarioByIdService(req.params.id);
@@ -21,7 +22,7 @@ export const getUsuarioById = async (req, res, next) => {
     next(error);
   }
 };
-
+// crear usuario
 export const createUsuario = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
@@ -35,7 +36,7 @@ export const createUsuario = async (req, res, next) => {
     next(error);
   }
 };
-
+// update usuario
 export const updateUsuario = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
@@ -47,7 +48,7 @@ export const updateUsuario = async (req, res, next) => {
     next(error);
   }
 };
-
+// (softdelete)
 export const deleteUsuario = async (req, res, next) => {
   try {
     await usuarioService.softDelete(req.params.id);

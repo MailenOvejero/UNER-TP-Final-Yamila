@@ -1,11 +1,10 @@
-// src/jobs/enviarEncuestas.job.js
 import cron from 'node-cron';
 import { getDbPool } from '../config/db.js';
 import { enviarNotificacionReserva } from '../utils/email.helper.js';
 
 export function iniciarJobEncuestas() {
   console.log('⏰ Tarea cron de encuestas iniciada');
-
+  // cron programa la tarea
   cron.schedule('0 9 * * *', async () => {
     try {
       const pool = getDbPool();
@@ -33,9 +32,9 @@ export function iniciarJobEncuestas() {
         });
       }
 
-      console.log(`📬 Se enviaron ${reservas.length} encuestas pendientes.`);
+      console.log(` Se enviaron ${reservas.length} encuestas pendientes.`);
     } catch (error) {
-      console.error(' Error en el job de encuestas:', error);
+      console.error(' Fallo en la tarea de encuestas:', error);
     }
   });
 }

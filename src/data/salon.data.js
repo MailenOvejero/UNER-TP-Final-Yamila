@@ -1,8 +1,7 @@
-// swc/data/salon.data.js
 import { getDbPool } from '../config/db.js';
 
 
-// Obtener todos los salones activos con paginación
+// get todos los salones activos + paginación
 export const getAllSalones = async ({ limit, offset, order = 'titulo', asc = true }) => {
   const pool = getDbPool();
 
@@ -21,7 +20,7 @@ export const getAllSalones = async ({ limit, offset, order = 'titulo', asc = tru
   return rows;
 };
 
-// Obtener un salón por ID
+// getun salón por ID
 export const getSalonById = async (salonId) => {
   const pool = getDbPool();
   const [rows] = await pool.query(
@@ -31,7 +30,7 @@ export const getSalonById = async (salonId) => {
   return rows[0] || null;
 };
 
-// Crear un nuevo salón
+// crear nuevo salón
 export const createSalon = async (salonData) => {
   const pool = getDbPool();
   const sql = `
@@ -50,7 +49,7 @@ export const createSalon = async (salonData) => {
   return result.insertId;
 };
 
-// Actualizar salón por ID
+// actualizo salón por ID
 export const updateSalon = async (salonId, salonData) => {
   const pool = getDbPool();
   const updatableColumns = ['titulo', 'direccion', 'latitud', 'longitud', 'capacidad', 'importe', 'activo'];
@@ -73,7 +72,7 @@ export const updateSalon = async (salonId, salonData) => {
   return result.affectedRows;
 };
 
-// Soft delete de salón
+// (softDelete)
 export const deleteSalon = async (salonId) => {
   const pool = getDbPool();
   const [result] = await pool.query(

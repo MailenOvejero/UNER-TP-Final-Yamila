@@ -15,19 +15,8 @@ import servicioRouter from './SERVICIO.ROUTES.js';
 import turnoRouter from './TURNO.ROUTES.js';
 
 
-
-// ===============================================
-// RUTAS MÓDULO AUTH
-// Resultado: POST /api/auth/login
-// También incluye /api/auth/test-email para probar envío de correo
-// ===============================================
 apiRouter.use('/auth', authRouter);
 
-// ===============================================
-// RUTAS PROTEGIDAS DE ENTIDADES (Persona 2)
-// El prefijo '/api' se define en app.js.
-// Resultado: /api/salones, /api/servicios, etc.
-// ===============================================
 apiRouter.use('/salones', salonRouter); // Montar el router de Salones bajo '/salones'
 
 // Ejemplo para futuras entidades

@@ -12,27 +12,26 @@ import chalk from 'chalk';
  */
 export function setupLogging(env) {
     if (env === 'production') {
-        // --- Lógica para producción (escribir en archivo) ---
+        // --- Para Morgan escribimos en Stream un archivo.log ---
         
-        // 1. Definir y asegurar el directorio de logs
+        // definimos el Path del log
         const logDirectory = path.join(process.cwd(), 'logs');
         if (!fs.existsSync(logDirectory)) {
             // fs.mkdirSync es síncrono, aceptable al inicio del servidor
             fs.mkdirSync(logDirectory);
         }
 
-        // 2. Crear el stream de escritura
+        // los logs van como archivo srteam, lo creamos
         const accessLogStream = fs.createWriteStream(
             path.join(logDirectory, 'access.log'), 
-            { flags: 'a' } // 'a' para agregar al final del archivo
+            { flags: 'a' } // 'a' flag para continuar excribiendo desde elo ultimo
         );
 
-        // 3. Devolver Morgan configurado para archivo
         console.log(chalk.yellow('Morgan: Configurado para escribir logs en: logs/access.log'));
         return morgan('combined', { stream: accessLogStream });
 
     } else {
-        // --- Lógica para desarrollo (escribir en consola) ---
+        // --- para dev Morgan escribie en consola ---
         console.log(chalk.yellow('Morgan: Configurado para logs en consola (dev).'));
         return morgan('dev');
     }

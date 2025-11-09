@@ -1,16 +1,14 @@
-// src/services/RESERVA.SERVICE.js
-
 import {
   getAllReservas,
   getReservaById,
   getReservasByUsuario,
-  createReserva, // Función de la capa de datos
+  createReserva, // F(Capa de datos)
   updateReserva,
   softDeleteReserva,
   getEstadisticasPorMes,
   getReservasCSV,
 
-  // Nuevas funciones para comentarios y encuestas
+  // Estas son las f(para comentarios y encuestas)
   createComentario,
   getComentariosByReserva,
   createEncuesta,
@@ -20,35 +18,29 @@ import {
 
 import { getReservaById as dataGetReservaById } from '../data/reserva.data.js'; // si ya existe, úsalo
 
-// También podrías necesitar importar aquí el helper de email si no lo tienes ya en el controlador
-// import { enviarNotificacionReserva, enviarNotificacionAdmin } from '../utils/email.helper.js'; 
+// También podríamos necesitar importar el helper de email si no estuviera en el controlador
+// xej, import { enviarNotificacionReserva, enviarNotificacionAdmin } from '../utils/email.helper.js'; 
 
 
-// ----------------------------------------------------------------------
-// Listar todas las reservas activas
-// ----------------------------------------------------------------------
+// ------- Listar todas las reservas activas ------
+
 export const listarReservas = async () => {
   return await getAllReservas();
 };
 
-// ----------------------------------------------------------------------
-// Obtener una reserva por ID
-// ----------------------------------------------------------------------
+// ------- reserva por ID -------
+
 export const obtenerReserva = async (id) => {
   return await getReservaById(id);
 };
 
-// ----------------------------------------------------------------------
-// Obtener reservas de un usuario específico
-// ----------------------------------------------------------------------
+// ---- reservas de un usuario específico ---
 export const obtenerReservasDelUsuario = async (usuario_id) => {
   return await getReservasByUsuario(usuario_id);
 };
 
-// ----------------------------------------------------------------------
-// FUNCIÓN MODIFICADA: Ahora acepta 'datos', que incluye 'ruta_comprobante'
-// ----------------------------------------------------------------------
-// Crear una nueva reserva con servicios y comprobante
+// ojo!! se modifico: Ahora acepta 'datos', que incluyen la 'ruta_comprobante'
+// Crea la nueva reserva con servicios y comprobante
 export const crearReserva = async (datos) => {
   // 1. Lógica de Negocio (Aquí iría la verificación de disponibilidad, por ejemplo)
   // ...

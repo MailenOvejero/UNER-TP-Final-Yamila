@@ -1,17 +1,16 @@
 import * as salonService from '../services/salon.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
-// ============================================================
-// BROWSE: Obtener todos los salones (GET /api/salones)
-// ============================================================
+
+// get salones
 export const getSalones = async (req, res, next) => {
-    // Obtener parámetros de paginación
+    // get parámetros de paginación
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
     const order = req.query.order || 'titulo';
     const asc = (req.query.asc === 'false') ? false : true; 
     
-    //  Validación básica de parámetros
+    //  validación básica
     if (limit < 1 || offset < 0) {
         const error = new Error('Los parámetros limit y offset deben ser valores positivos.');
         error.status = 400; // Bad Request
@@ -19,10 +18,8 @@ export const getSalones = async (req, res, next) => {
     }
 
     try {
-        //  Llamar al servicio
+        //  llamar al servicio
         const salones = await salonService.listarSalones({ limit, offset, order, asc });
-
-        //  Respuesta exitosa
         res.status(200).json({
             status: 'success',
             count: salones.length,
@@ -34,32 +31,21 @@ export const getSalones = async (req, res, next) => {
     }
 };
 
-// ============================================================
-// READ: Obtener un salón por ID (GET /api/salones/:id)
-// ============================================================
+// get un salón por ID
 export const getSalon = async (req, res, next) => {
-    
     const salonId = parseInt(req.params.id); 
-
-    //  Validación de ID
     if (isNaN(salonId) || salonId <= 0) {
         const error = new Error('ID de salón inválido. Debe ser un número positivo.');
-        error.status = 400; // Bad Request
+        error.status = 400;
         return next(error); 
     }
-
     try {
-        //  Llamar al servicio
         const salon = await salonService.obtenerSalon(salonId); 
-
-        //  Manejo de 404 Not Found (si no existe o está inactivo)
         if (!salon) {
             const error = new Error(`Salón con ID ${salonId} no encontrado o inactivo.`);
             error.status = 404; // Not Found
             return next(error); 
         }
-
-        //  Respuesta exitosa
         res.status(200).json({
             status: 'success',
             data: salon
@@ -70,21 +56,16 @@ export const getSalon = async (req, res, next) => {
     }
 };
 
-// ============================================================
-// ADD: Crear un nuevo salón (POST /api/salones)
-// ============================================================
+// crear salon
 export const createSalon = async (req, res, next) => {
-    
     //  Verificar errores de validación
     const errors = validationResult(req);
-    
     if (!errors.isEmpty()) {
         const error = new Error('Error de validación en los datos del salón.');
         error.status = 400; // Bad Request
         error.details = errors.array(); 
         return next(error);
     }
-
     try {
         //  Llamar al servicio
         const newSalonId = await salonService.crearSalon(req.body);
@@ -102,14 +83,12 @@ export const createSalon = async (req, res, next) => {
     }
 };
 
-// ============================================================
-// EDIT: Actualizar un salón (PUT /api/salones/:id)
-// ============================================================
+// actualizar un salón
 export const updateSalon = async (req, res, next) => {
     
     const salonId = parseInt(req.params.id);
 
-    //  Validación de ID y errores de validación de express-validator
+    //  validación de ID y errores de validación de express-validator
     if (isNaN(salonId) || salonId <= 0) {
         const error = new Error('ID de salón inválido. Debe ser un número positivo.');
         error.status = 400; 
@@ -124,7 +103,7 @@ export const updateSalon = async (req, res, next) => {
         return next(error);
     }
     
-    // Verificar que el body no esté vacío
+    // verifico que el body no esté vacío
     if (Object.keys(req.body).length === 0) {
         const error = new Error('No se proporcionaron datos para actualizar.');
         error.status = 400; 
@@ -132,17 +111,16 @@ export const updateSalon = async (req, res, next) => {
     }
 
     try {
-        //  Llamar al servicio
+        //  llamo al servicio
         const affectedRows = await salonService.actualizarSalon(salonId, req.body);
         
-        //  Manejo de 404
         if (affectedRows === 0) {
             const error = new Error(`No se encontró o no se pudo actualizar el salón con ID ${salonId}.`);
             error.status = 404;
             return next(error);
         }
         apicacheInstance.clear();
-        // Respuesta exitosa
+        // respuesta exitosa
         res.status(200).json({
             status: 'success',
             message: `Salón con ID ${salonId} actualizado exitosamente.`,
@@ -153,9 +131,7 @@ export const updateSalon = async (req, res, next) => {
     }
 };
 
-// ============================================================
-// DELETE: Desactivar salón (DELETE /api/salones/:id)
-// ============================================================
+// (softDelete)
 export const deleteSalon = async (req, res, next) => {
     
     const salonId = parseInt(req.params.id); 
@@ -163,22 +139,19 @@ export const deleteSalon = async (req, res, next) => {
     // Validación de ID
     if (isNaN(salonId) || salonId <= 0) {
         const error = new Error('ID de salón inválido. Debe ser un número positivo.');
-        error.status = 400; // Bad Request
+        error.status = 400; 
         return next(error);
     }
 
     try {
-        //  Llamar al servicio para realizar soft delete
         const affectedRows = await salonService.eliminarSalon(salonId); 
 
-        // Manejo de 404
         if (affectedRows === 0) {
             const error = new Error(`No se encontró un salón activo con ID ${salonId} para desactivar.`);
             error.status = 404;
             return next(error);
         }
         apicacheInstance.clear();
-        //  Respuesta exitosa
         res.status(200).json({
             status: 'success',
             message: `Salón con ID ${salonId} desactivado (soft delete) exitosamente.`,

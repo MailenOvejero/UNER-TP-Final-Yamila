@@ -1,10 +1,9 @@
-// src/utils/email.helper.js
 import nodemailer from "nodemailer";
 
 let transporter;
 
 if (process.env.NODE_ENV === "development") {
- //modosimulado no envia correos reales
+ // Ojo, se simulan los correos en modo dev
   const testAccount = await nodemailer.createTestAccount();
   transporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
@@ -14,11 +13,11 @@ if (process.env.NODE_ENV === "development") {
       pass: testAccount.pass,
     },
   });
-  console.log("Modo desarrollo: usando cuenta ficticia Ethereal");
+  console.log("Modo dev: usando la cuenta Ethereal");
 } else {
 
   transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: "gmail", // para pruebas usamos solo gmail
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,

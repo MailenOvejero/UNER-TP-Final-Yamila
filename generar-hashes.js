@@ -1,4 +1,3 @@
-// generar-hashes.js
 import bcrypt from 'bcrypt';
 
 const password = '123456';

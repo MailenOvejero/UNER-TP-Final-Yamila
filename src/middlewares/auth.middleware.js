@@ -1,39 +1,38 @@
 import jwt from 'jsonwebtoken';
 import { ROLES } from '../config/roles.js';
 
-/*Middleware uno - Verifica el token JWT en el header de la peticion (Authorization: Bearer <token>).
-  Si es vaalido, adjunta la informaci0n del usuario (req.user) y pasa a la siguiente función.
-  Si es invalido, devuelve 401 Unauthorized.
+/*Verifico el token JWT el formato es Bearer <token>).
+  Si = vaalido => adjunta la info de usuario (req.user) => siguiente función.
+  Si es invalido => 401 Unauthorized.
  */
 export const verifyToken = (req, res, next) => {
-    //  Extraer el header de autorizacion
+    //  Extraer el header aut
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // Si no hay token o no tiene el formato 'Bearer <token>'
+        // Chequeamos si hay y el formato 'Bearer <token>'
         const error = new Error('Acceso denegado. Token JWT no proporcionado o formato inválido.');
-        error.status = 401; // Unauthorized
+        error.status = 401; // no autoriza
         return next(error);
     }
 
-    //  Extraer el token (eliminar el prefijo 'Bearer ')
+    //  Extrae el token y elimina el prefijo 'Bearer '
     const token = authHeader.split(' ')[1];
 
     try {
-        // Verificar y decodificar el token usando la clave secreta
+        // Verifico y decodifico el token con la clave secreta
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Adjuntar la informacion del usuario al objeto de la peticion (req)
-        // Esto permite que las rutas sepan quién hizo la petición (req.user.id, req.user.role)
+        // sumo la info del user a la peticion para poder reconocerlo (req.user.id, req.user.role)
         req.user = decoded; 
         
-        // Pasar al siguiente middleware o ruta
+        // => siguiente middleware o ruta
         next(); 
 
     } catch (err) {
-        // Si el token expiró, es inválido o la firma es incorrecta
+        // puede ser invalido, expirado, o incorrecto
         const error = new Error('Token inválido o expirado.');
-        error.status = 401; // Unauthorized
+        error.status = 401; 
         return next(error);
     }
 };
@@ -46,10 +45,10 @@ export const verifyToken = (req, res, next) => {
  */
 export const authorize = (allowedRoles) => {
     return (req, res, next) => {
-        // Asume que verifyToken ya se ejecutó y req.user existe.
+        // Asumo que verifyToken ya se ejecutó y req.user existe.
         if (!req.user || !req.user.role) {
-            // Este caso no debería ocurrir si verifyToken se ejecuta antes,
-            // pero actúa como un fallback de seguridad.
+            // no debería ocurrir si verifyToken se ejecuta antes,
+            // es fallback de seguridad.
             const error = new Error('Acceso denegado. No se encontró información de usuario.');
             error.status = 403; // Forbidden
             return next(error);
@@ -57,14 +56,12 @@ export const authorize = (allowedRoles) => {
 
         const userRole = req.user.role;
 
-        // Comprobar si el rol del usuario está incluido en la lista de roles permitidos
+        // compruebo que el rol este permitido en el listado
         if (allowedRoles.includes(userRole)) {
-            // El rol es válido, continuar
             next();
         } else {
-            // El rol no tiene permiso para esta ruta
             const error = new Error('Acceso prohibido. Rol insuficiente para realizar esta acción.');
-            error.status = 403; // Forbidden
+            error.status = 403; 
             return next(error);
         }
     };

@@ -2,7 +2,7 @@ import * as servicioService from '../services/servicio.service.js';
 import { validationResult } from 'express-validator';
 import { apicacheInstance } from '../config/cache.js';
 
-// Listar todos los servicios
+// get servicios
 export const getServicios = async (req, res, next) => {
   try {
     const servicios = await servicioService.listarServicios(); // ← cambio aquí
@@ -12,7 +12,7 @@ export const getServicios = async (req, res, next) => {
   }
 };
 
-// Obtener un servicio por ID
+// get servicio por ID
 export const getServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
@@ -25,7 +25,7 @@ export const getServicio = async (req, res, next) => {
   }
 };
 
-// Crear un servicio
+// crear servicio
 export const createServicio = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(new Error('Datos inválidos'));
@@ -38,7 +38,7 @@ export const createServicio = async (req, res, next) => {
   }
 };
 
-// Actualizar un servicio
+// actualizar servicio
 export const updateServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));
@@ -54,7 +54,7 @@ export const updateServicio = async (req, res, next) => {
   }
 };
 
-// Eliminar un servicio (soft delete)
+// (softDelete)
 export const deleteServicio = async (req, res, next) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return next(new Error('ID inválido'));

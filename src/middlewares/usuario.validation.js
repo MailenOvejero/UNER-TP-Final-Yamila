@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { validate } from './validate.js'; // SOLUCIÓN: Importar el middleware de manejo de errores
+import { validate } from './validate.js'; // middleware de manejo de errores
 
 export const createUsuarioValidation = [
   body('nombre').isString().isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres.'),
@@ -22,6 +22,5 @@ export const updateUsuarioValidation = [
   body('foto').optional().isString(),
   body('activo').optional().isBoolean(),
   
-  // El middleware de validación final
   validate
 ];

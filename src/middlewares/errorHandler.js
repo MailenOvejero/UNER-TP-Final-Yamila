@@ -5,23 +5,21 @@ import { obtenerEmailsAdmins } from '../services/usuario.service.js';
 
 export const errorHandler = async (err, req, res, next) => {
 
-    //  Evita que si se enviaron cabeceras no se envien denuevo crasheando el server
+    //  evito que si se enviaron cabeceras no se envien denuevo
     if (res.headersSent) {
         return next(err);
     }
-    //  Obtener el entorno configurado por la línea app.set('env', ...)
+
     const env = req.app.get('env');
 
-    //  Define el estado HTTP (usa 500 si no está especificado en el error)
     const statusCode = err.status || 500;
     
     // Logica para mostrar detalles del error: solo en desarrollo o debug
-    let errorDetails = {}; // Inicializamos como objeto vacío
+    let errorDetails = {};
 
     if (env === 'development' || env === 'debug') {
-        console.error(err.stack); // Usar err.stack da info completa del error
-        
-        // Incluimos el stack y otros detalles en la respuesta JSON
+        console.error(err.stack); // .stack da el erro con mas info
+      
         errorDetails = {
             stack: err.stack,
             type: err.name,
@@ -29,7 +27,7 @@ export const errorHandler = async (err, req, res, next) => {
         };      
     }
 
-    //  Enviar notificación por mail a administradores activos
+    //  notificamos x mail a los adminis activos
     try {
         const destinatarios = await obtenerEmailsAdmins();
         const asunto = `Error ${statusCode} en ${req.method} ${req.originalUrl}`;

@@ -1,4 +1,3 @@
-// src/swagger.js
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
@@ -22,7 +21,7 @@ const swaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  // Escanea todos los archivos de rutas y controladores JS
+  // Es el SCAN de todos los archivos de rutas y controladores JS
   apis: [
     './src/routes/*.js',
     './src/controllers/*.js',
@@ -30,13 +29,13 @@ const options = {
   ],
 };
 
-// Generar especificación Swagger
+// Generamos las especificación Swagger
 const swaggerSpec = swaggerJSDoc(options);
 
-// EXPORT CORRECTO PARA ES MODULES
+
 export default swaggerSpec;
 
-// FUNCIÓN PARA MONTAR SWAGGER EN EL APP
+// esto va en app.js
 export const setupSwagger = (app) => {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

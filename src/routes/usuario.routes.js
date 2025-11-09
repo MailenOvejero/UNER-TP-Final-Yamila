@@ -14,7 +14,7 @@ import { cacheMiddleware, apicacheInstance } from '../config/cache.js';
 
 const router = Router();
 
-// 🔒 Todas las rutas de usuarios requieren token y rol ADMIN
+// 🔒 ------ Todas las rutas de usuarios requieren token y rol ADMIN ------
 router.use(verifyToken);
 router.use(authorize([ROLES.ADMIN]));
 

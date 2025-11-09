@@ -1,4 +1,3 @@
-// swc/service/turno.service.js
 import {
   getAllTurnos,
   getTurnoById,
@@ -7,27 +6,27 @@ import {
   deleteTurno
 } from '../data/turno.data.js';
 
-// Listar todos los turnos activos
+// listar los turnos activos
 export const listarTurnos = async () => {
   return await getAllTurnos();
 };
 
-// Obtener un turno por ID
+// turno por ID
 export const obtenerTurno = async (id) => {
   return await getTurnoById(id);
 };
 
-// Crear un nuevo turno
+// crear turno
 export const crearTurno = async (datos) => {
   return await createTurno(datos);
 };
 
-// Actualizar un turno existente
+// actualizar turno
 export const actualizarTurno = async (id, datos) => {
   return await updateTurno(id, datos);
 };
 
-// Eliminar lógicamente un turno
+// (soft delete)
 export const eliminarTurno = async (id) => {
   return await deleteTurno(id);
 };

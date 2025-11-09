@@ -1,4 +1,3 @@
-// swc/service/servicio.service.js
 import {
   getAllServicios,
   getServicioById,
@@ -7,27 +6,27 @@ import {
   deleteServicio
 } from '../data/servicio.data.js';
 
-// Listar todos los servicios activos
+// listar servicios activos
 export const listarServicios = async () => {
   return await getAllServicios();
 };
 
-// Obtener un servicio por ID
+// servicio por ID
 export const obtenerServicio = async (id) => {
   return await getServicioById(id);
 };
 
-// Crear un nuevo servicio
+// crear servicio
 export const crearServicio = async (datos) => {
   return await createServicio(datos);
 };
 
-// Actualizar un servicio existente
+// actualizar servicio existente
 export const actualizarServicio = async (id, datos) => {
   return await updateServicio(id, datos);
 };
 
-// Eliminar lógicamente un servicio
+// (soft delete)
 export const eliminarServicio = async (id) => {
   return await deleteServicio(id);
 };
