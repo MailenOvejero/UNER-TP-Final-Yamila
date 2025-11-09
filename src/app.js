@@ -92,17 +92,33 @@ app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 // MIDDLEWARE DE AUTENTICACIÓN (JWT Check)
 // ************************************************************
 app.use((req, res, next) => {
-  const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
+  // Solo aplicar autenticación a rutas de la API (que empiezan con /api)
+  // Todas las demás rutas (públicas, archivos estáticos) pasan sin autenticación
+  
+  const isApiRoute = req.path.startsWith('/api');
+  
+  // Rutas públicas (sin autenticación): login, register, páginas HTML, archivos estáticos
+  const isPublicLogin = (req.path === '/login' || req.path === '/register') && req.method === 'POST';
+  const isPublicPage = req.path === '/' || req.path === '/login' || req.path.startsWith('/dashboard');
+  
+  // Si NO es una ruta de API o es una ruta pública, pasar sin autenticación
+  if (!isApiRoute || isPublicLogin || isPublicPage) {
+    return next();
+  }
+
+  // Si ES una ruta de API, verificar si es pública
   const isSwagger = req.originalUrl.includes('/docs') || req.originalUrl.includes('/api-docs');
+  const isLogin = req.originalUrl.includes('/api/auth/login') && req.method === 'POST';
   const isTestEmail = req.originalUrl.includes('/api/auth/test-email') && req.method === 'GET';
   const isRegister = req.path === '/api/auth/register/client' && req.method === 'POST';
 
-  // Excepciones: Login, Swagger, test-email y registro de cliente
+  // Rutas de API públicas (sin autenticación)
   if (isLogin || isSwagger || isTestEmail || isRegister) {
     return next();
   }
 
-  verifyToken(req, res, next); // todas las demás rutas requieren token
+  // Todas las demás rutas de API requieren token
+  verifyToken(req, res, next);
 });
 
 // ************************************************************

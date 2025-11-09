@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Empleado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background-color: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 Dashboard Empleado</h1>
+        <div class="user-info">
+            <span id="userName">Usuario</span>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('reservas')">Reservas</button>
+            <button class="tab" onclick="showTab('salones')">Salones</button>
+            <button class="tab" onclick="showTab('servicios')">Servicios</button>
+            <button class="tab" onclick="showTab('turnos')">Turnos</button>
+            <button class="tab" onclick="showTab('encuestas')">Encuestas</button>
+            <button class="tab" onclick="showTab('comentarios')">Comentarios</button>
+        </div>
+
+        <!-- Tab Reservas -->
+        <div id="reservas" class="content active">
+            <h2>Gestión de Reservas</h2>
+            <button class="btn btn-primary" onclick="loadReservas()">Actualizar</button>
+            <div id="reservasList" class="loading">Cargando reservas...</div>
+        </div>
+
+        <!-- Tab Salones -->
+        <div id="salones" class="content">
+            <h2>Gestión de Salones</h2>
+            <button class="btn btn-primary" onclick="loadSalones()">Actualizar</button>
+            <button class="btn btn-primary" onclick="showCreateSalonModal()">Nuevo Salón</button>
+            <div id="salonesList" class="loading">Cargando salones...</div>
+        </div>
+
+        <!-- Tab Servicios -->
+        <div id="servicios" class="content">
+            <h2>Gestión de Servicios</h2>
+            <button class="btn btn-primary" onclick="loadServicios()">Actualizar</button>
+            <button class="btn btn-primary" onclick="showCreateServicioModal()">Nuevo Servicio</button>
+            <div id="serviciosList" class="loading">Cargando servicios...</div>
+        </div>
+
+        <!-- Tab Turnos -->
+        <div id="turnos" class="content">
+            <h2>Gestión de Turnos</h2>
+            <button class="btn btn-primary" onclick="loadTurnos()">Actualizar</button>
+            <button class="btn btn-primary" onclick="showCreateTurnoModal()">Nuevo Turno</button>
+            <div id="turnosList" class="loading">Cargando turnos...</div>
+        </div>
+
+        <!-- Tab Encuestas -->
+        <div id="encuestas" class="content">
+            <h2>Encuestas de Satisfacción</h2>
+            <button class="btn btn-primary" onclick="loadEncuestas()">Actualizar</button>
+            <div id="encuestasList" class="loading">Cargando encuestas...</div>
+        </div>
+
+        <!-- Tab Comentarios -->
+        <div id="comentarios" class="content">
+            <h2>Comentarios de Reservas</h2>
+            <button class="btn btn-primary" onclick="loadComentarios()">Actualizar</button>
+            <div id="comentariosList" class="loading">Cargando comentarios...</div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar comentario -->
+    <div id="comentarioModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Comentario</h3>
+                <button class="close" onclick="closeComentarioModal()">&times;</button>
+            </div>
+            <form id="comentarioForm">
+                <input type="hidden" id="reservaIdComentario" name="reserva_id">
+                <div class="form-group">
+                    <label>Comentario</label>
+                    <textarea name="comentario" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Agregar Comentario</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+
+        // Verificar autenticación al cargar
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token || user.role !== 'EMPLEADO') {
+                window.location.href = '/login';
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('userName').textContent = user.nombre_usuario || 'Empleado';
+            
+            // Cargar datos iniciales
+            loadReservas();
+        });
+
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            };
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            switch(tabName) {
+                case 'reservas':
+                    loadReservas();
+                    break;
+                case 'salones':
+                    loadSalones();
+                    break;
+                case 'servicios':
+                    loadServicios();
+                    break;
+                case 'turnos':
+                    loadTurnos();
+                    break;
+                case 'encuestas':
+                    loadEncuestas();
+                    break;
+                case 'comentarios':
+                    loadComentarios();
+                    break;
+            }
+        }
+
+        // Cargar reservas
+        async function loadReservas() {
+            try {
+                const response = await fetch(`${API_BASE}/reservas`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar reservas');
+
+                const reservas = await response.json();
+                const container = document.getElementById('reservasList');
+                
+                if (reservas.length === 0) {
+                    container.innerHTML = '<p>No hay reservas registradas.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Salón</th>
+                                <th>Estado</th>
+                                <th>Importe</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reservas.map(r => `
+                                <tr>
+                                    <td>${r.reserva_id}</td>
+                                    <td>${r.nombre || 'N/A'} ${r.apellido || ''}</td>
+                                    <td>${r.fecha_reserva || 'N/A'}</td>
+                                    <td>${r.nombre_salon || 'N/A'}</td>
+                                    <td>${r.estado || 'N/A'}</td>
+                                    <td>$${r.importe_total || 0}</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="viewReserva(${r.reserva_id})">Ver</button>
+                                        <button class="btn btn-secondary" onclick="addComentario(${r.reserva_id})">Comentario</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar reservas: ' + error.message);
+                document.getElementById('reservasList').innerHTML = '<p>Error al cargar reservas.</p>';
+            }
+        }
+
+        // Cargar salones
+        async function loadSalones() {
+            try {
+                const response = await fetch(`${API_BASE}/salones`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar salones');
+
+                const salones = await response.json();
+                const container = document.getElementById('salonesList');
+                
+                if (salones.length === 0) {
+                    container.innerHTML = '<p>No hay salones registrados.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Capacidad</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${salones.map(s => `
+                                <tr>
+                                    <td>${s.salon_id}</td>
+                                    <td>${s.nombre}</td>
+                                    <td>${s.capacidad}</td>
+                                    <td>$${s.precio}</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="editSalon(${s.salon_id})">Editar</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar salones: ' + error.message);
+                document.getElementById('salonesList').innerHTML = '<p>Error al cargar salones.</p>';
+            }
+        }
+
+        // Cargar servicios
+        async function loadServicios() {
+            try {
+                const response = await fetch(`${API_BASE}/servicios`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar servicios');
+
+                const servicios = await response.json();
+                const container = document.getElementById('serviciosList');
+                
+                if (servicios.length === 0) {
+                    container.innerHTML = '<p>No hay servicios registrados.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${servicios.map(s => `
+                                <tr>
+                                    <td>${s.servicio_id}</td>
+                                    <td>${s.nombre}</td>
+                                    <td>${s.descripcion || 'N/A'}</td>
+                                    <td>$${s.precio}</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="editServicio(${s.servicio_id})">Editar</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar servicios: ' + error.message);
+                document.getElementById('serviciosList').innerHTML = '<p>Error al cargar servicios.</p>';
+            }
+        }
+
+        // Cargar turnos
+        async function loadTurnos() {
+            try {
+                const response = await fetch(`${API_BASE}/turnos`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar turnos');
+
+                const turnos = await response.json();
+                const container = document.getElementById('turnosList');
+                
+                if (turnos.length === 0) {
+                    container.innerHTML = '<p>No hay turnos registrados.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hora Inicio</th>
+                                <th>Hora Fin</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${turnos.map(t => `
+                                <tr>
+                                    <td>${t.turno_id}</td>
+                                    <td>${t.hora_inicio}</td>
+                                    <td>${t.hora_fin}</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="editTurno(${t.turno_id})">Editar</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar turnos: ' + error.message);
+                document.getElementById('turnosList').innerHTML = '<p>Error al cargar turnos.</p>';
+            }
+        }
+
+        // Cargar encuestas
+        async function loadEncuestas() {
+            try {
+                const response = await fetch(`${API_BASE}/reservas/encuestas`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar encuestas');
+
+                const encuestas = await response.json();
+                const container = document.getElementById('encuestasList');
+                
+                if (encuestas.length === 0) {
+                    container.innerHTML = '<p>No hay encuestas registradas.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Reserva ID</th>
+                                <th>Cliente</th>
+                                <th>Puntuación</th>
+                                <th>Comentarios</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${encuestas.map(e => `
+                                <tr>
+                                    <td>${e.encuesta_id}</td>
+                                    <td>${e.reserva_id}</td>
+                                    <td>${e.nombre} ${e.apellido}</td>
+                                    <td>${'⭐'.repeat(e.puntuacion)} (${e.puntuacion})</td>
+                                    <td>${e.comentarios || 'Sin comentarios'}</td>
+                                    <td>${new Date(e.creado).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar encuestas: ' + error.message);
+                document.getElementById('encuestasList').innerHTML = '<p>Error al cargar encuestas.</p>';
+            }
+        }
+
+        // Cargar comentarios
+        async function loadComentarios() {
+            try {
+                const response = await fetch(`${API_BASE}/reservas/comentarios`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar comentarios');
+
+                const comentarios = await response.json();
+                const container = document.getElementById('comentariosList');
+                
+                if (comentarios.length === 0) {
+                    container.innerHTML = '<p>No hay comentarios registrados.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Reserva ID</th>
+                                <th>Comentario</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${comentarios.map(c => `
+                                <tr>
+                                    <td>${c.comentario_id}</td>
+                                    <td>${c.reserva_id}</td>
+                                    <td>${c.comentario}</td>
+                                    <td>${new Date(c.creado).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                showAlert('Error al cargar comentarios: ' + error.message);
+                document.getElementById('comentariosList').innerHTML = '<p>Error al cargar comentarios.</p>';
+            }
+        }
+
+        // Ver reserva
+        async function viewReserva(id) {
+            try {
+                const response = await fetch(`${API_BASE}/reservas/${id}`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) throw new Error('Error al cargar reserva');
+
+                const reserva = await response.json();
+                alert(`Reserva #${reserva.reserva_id}\nCliente: ${reserva.nombre} ${reserva.apellido}\nFecha: ${reserva.fecha_reserva}\nEstado: ${reserva.estado}\nImporte: $${reserva.importe_total}`);
+            } catch (error) {
+                showAlert('Error al cargar reserva: ' + error.message);
+            }
+        }
+
+        // Agregar comentario
+        function addComentario(reservaId) {
+            document.getElementById('reservaIdComentario').value = reservaId;
+            document.getElementById('comentarioModal').classList.add('show');
+        }
+
+        function closeComentarioModal() {
+            document.getElementById('comentarioModal').classList.remove('show');
+            document.getElementById('comentarioForm').reset();
+        }
+
+        document.getElementById('comentarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const reservaId = formData.get('reserva_id');
+            const comentario = formData.get('comentario');
+
+            try {
+                const response = await fetch(`${API_BASE}/reservas/${reservaId}/comentarios`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ comentario })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('Comentario agregado exitosamente', 'success');
+                    closeComentarioModal();
+                    loadReservas();
+                    loadComentarios();
+                } else {
+                    showAlert(result.error || 'Error al agregar comentario');
+                }
+            } catch (error) {
+                showAlert('Error al agregar comentario: ' + error.message);
+            }
+        });
+
+        function showCreateSalonModal() {
+            alert('Funcionalidad de crear salón - Por implementar');
+        }
+
+        function showCreateServicioModal() {
+            alert('Funcionalidad de crear servicio - Por implementar');
+        }
+
+        function showCreateTurnoModal() {
+            alert('Funcionalidad de crear turno - Por implementar');
+        }
+
+        function editSalon(id) {
+            alert('Funcionalidad de editar salón - Por implementar');
+        }
+
+        function editServicio(id) {
+            alert('Funcionalidad de editar servicio - Por implementar');
+        }
+
+        function editTurno(id) {
+            alert('Funcionalidad de editar turno - Por implementar');
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
+
