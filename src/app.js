@@ -20,9 +20,19 @@ import { initializeDbPool } from './config/db.js';
 // IMPORTAMOS EL ROUTER CENTRAL DE LA API
 import apiRouter from './routes/index.js'; // Contiene /auth, /salones, /reservas, etc.
 
+// IMPORTAMOS EL ROUTER PÚBLICO (para páginas HTML estáticas)
+import publicRouter from './routes/public.routes.js';
+
 // IMPORTAMOS MIDDLEWARES DE SEGURIDAD Y CIERRE
 import { verifyToken } from './middlewares/auth.middleware.js';
 import { notFound, errorHandler } from './middlewares/index.js';
+
+// Para servir archivos estáticos
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -63,23 +73,20 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 setupSwagger(app); // Se monta antes del middleware JWT
 
 // ************************************************************
-// RUTA DE BIENVENIDA (Pública)
+// RUTAS PÚBLICAS (Páginas HTML - sin autenticación)
 // ************************************************************
-app.get("/", (req, res) => {
-  const appName = app.get('app name');
-  const version = app.get('version');
+// Montar el router público ANTES del middleware de autenticación
+// Esto permite acceder a /login, /, etc. sin token
+// IMPORTANTE: Debe ir antes de express.static para que las rutas tengan prioridad
+app.use(publicRouter);
 
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head><title>${appName}</title></head>
-      <body>
-        <h1>${appName}</h1>
-        <h2>Versión: ${version}</h2>
-      </body>
-    </html>
-  `);
-});
+// ************************************************************
+// ARCHIVOS ESTÁTICOS (Públicos - sin autenticación)
+// ************************************************************
+// Servir archivos estáticos de la carpeta public (CSS, JS, imágenes, etc.)
+// Se monta después del router público para que las rutas del router tengan prioridad
+// pero los archivos estáticos (CSS, JS, imágenes) se sirvan correctamente
+app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 
 // ************************************************************
 // MIDDLEWARE DE AUTENTICACIÓN (JWT Check)

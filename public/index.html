@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Sistema de Reservas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .alert-error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background-color: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .register-form {
+            display: none;
+        }
+
+        .register-form.show {
+            display: block;
+        }
+
+        .login-form.hide {
+            display: none;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .toggle-form button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        .toggle-form button:hover {
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 Iniciar Sesión</h1>
+            <p>Sistema de Reservas</p>
+        </div>
+
+        <!-- Alerta de errores/éxito -->
+        <div id="alert" class="alert"></div>
+
+        <!-- Formulario de Login -->
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <label for="nombre_usuario">Usuario (Email)</label>
+                <input 
+                    type="email" 
+                    id="nombre_usuario" 
+                    name="nombre_usuario" 
+                    placeholder="tu@email.com" 
+                    required
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="••••••••" 
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                Iniciar Sesión
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+            </div>
+
+            <div class="toggle-form">
+                <button type="button" onclick="toggleForms()">¿No tienes cuenta? Regístrate</button>
+            </div>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form id="registerForm" class="register-form">
+            <div class="form-group">
+                <label for="reg_nombre">Nombre</label>
+                <input type="text" id="reg_nombre" name="nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg_apellido">Apellido</label>
+                <input type="text" id="reg_apellido" name="apellido" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg_nombre_usuario">Email</label>
+                <input type="email" id="reg_nombre_usuario" name="nombre_usuario" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg_contrasenia">Contraseña</label>
+                <input type="password" id="reg_contrasenia" name="contrasenia" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reg_celular">Celular (opcional)</label>
+                <input type="tel" id="reg_celular" name="celular">
+            </div>
+
+            <button type="submit" class="btn-login" id="registerBtn">
+                Registrarse
+            </button>
+
+            <div class="loading" id="loadingRegister">
+                <div class="spinner"></div>
+            </div>
+
+            <div class="toggle-form">
+                <button type="button" onclick="toggleForms()">¿Ya tienes cuenta? Inicia sesión</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin + '/api';
+
+        // Elementos del DOM
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const alertDiv = document.getElementById('alert');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loadingLogin = document.getElementById('loading');
+        const loadingRegister = document.getElementById('loadingRegister');
+
+        // Función para mostrar alertas
+        function showAlert(message, type = 'error') {
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type} show`;
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // Función para alternar entre formularios
+        function toggleForms() {
+            loginForm.classList.toggle('hide');
+            registerForm.classList.toggle('show');
+            alertDiv.classList.remove('show');
+        }
+
+        // Manejo del formulario de login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nombre_usuario: document.getElementById('nombre_usuario').value,
+                password: document.getElementById('password').value
+            };
+
+            // Validación básica
+            if (!formData.nombre_usuario || !formData.password) {
+                showAlert('Por favor, completa todos los campos');
+                return;
+            }
+
+            // Deshabilitar botón y mostrar loading
+            loginBtn.disabled = true;
+            loadingLogin.classList.add('show');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Guardar token en localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showAlert(`¡Bienvenido, ${data.user.nombre_usuario}! Redirigiendo...`, 'success');
+                    
+                    // Redirigir según el rol
+                    setTimeout(() => {
+                        const role = data.user.role;
+                        if (role === 'ADMIN') {
+                            window.location.href = '/dashboard-admin.html';
+                        } else if (role === 'EMPLEADO') {
+                            window.location.href = '/dashboard-empleado.html';
+                        } else {
+                            window.location.href = '/dashboard-cliente.html';
+                        }
+                    }, 1500);
+                } else {
+                    showAlert(data.error || 'Error al iniciar sesión');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión. Por favor, intenta nuevamente.');
+            } finally {
+                loginBtn.disabled = false;
+                loadingLogin.classList.remove('show');
+            }
+        });
+
+        // Manejo del formulario de registro
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                nombre: document.getElementById('reg_nombre').value,
+                apellido: document.getElementById('reg_apellido').value,
+                nombre_usuario: document.getElementById('reg_nombre_usuario').value,
+                contrasenia: document.getElementById('reg_contrasenia').value,
+                celular: document.getElementById('reg_celular').value || null
+            };
+
+            // Validación básica
+            if (!formData.nombre || !formData.apellido || !formData.nombre_usuario || !formData.contrasenia) {
+                showAlert('Por favor, completa los campos obligatorios');
+                return;
+            }
+
+            // Deshabilitar botón y mostrar loading
+            registerBtn.disabled = true;
+            loadingRegister.classList.add('show');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register/client`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('¡Registro exitoso! Ahora puedes iniciar sesión.', 'success');
+                    // Cambiar al formulario de login después de 2 segundos
+                    setTimeout(() => {
+                        toggleForms();
+                        document.getElementById('nombre_usuario').value = formData.nombre_usuario;
+                    }, 2000);
+                } else {
+                    showAlert(data.error || data.message || 'Error al registrar usuario');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión. Por favor, intenta nuevamente.');
+            } finally {
+                registerBtn.disabled = false;
+                loadingRegister.classList.remove('show');
+            }
+        });
+
+        // Verificar si ya hay una sesión activa
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Si hay token, redirigir al dashboard
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'ADMIN') {
+                    window.location.href = '/dashboard-admin.html';
+                } else if (user.role === 'EMPLEADO') {
+                    window.location.href = '/dashboard-empleado.html';
+                } else {
+                    window.location.href = '/dashboard-cliente.html';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
