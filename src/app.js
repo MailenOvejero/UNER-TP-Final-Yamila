@@ -160,13 +160,39 @@ async function startServer() {
     const { iniciarJobEncuestas } = await import('./jobs/enviarEncuestas.job.js');
     iniciarJobEncuestas();
 
-    // Iniciar Express
-    app.listen(app.get('port'), app.get('host'), (error) => {
-      if (error) throw error;
-      console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
+    // Creamos una promesa para manejar el inicio del servidor y sus posibles errores
+    const server = await new Promise((resolve, reject) => {
+      const s = app.listen(app.get('port'), app.get('host'), () => {
+        console.log(chalk.green.italic(`\n\u2714 Server Express: V5.1.0 - ONLINE\n\n\u2714 IP:${app.get('host')}:${app.get('port')} - Mode: ${process.env.NODE_ENV}\n`));
+        resolve(s);
+      });
+
+      s.on('error', (err) => {
+        reject(err);
+      });
     });
+
+    // Función para un cierre "gracioso" del servidor
+    const gracefulShutdown = (signal) => {
+      console.log(chalk.yellow(`\n${signal} recibido. Cerrando el servidor de forma graciosa...`));
+      server.close(() => {
+        console.log(chalk.green('Servidor cerrado.'));
+        process.exit(0);
+      });
+    };
+
+    // Escuchar señales de cierre para nodemon y otros
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM')); // `kill` (terminación)
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));   // `Ctrl+C` (interrupción)
+    process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // Señal de reinicio de nodemon
+
   } catch (error) {
-    console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
+    // Si el error es EADDRINUSE, el mensaje es más amigable
+    if (error.code === 'EADDRINUSE') {
+      console.error(chalk.red.bold(`\nError: El puerto ${app.get('port')} ya está en uso.\n`));
+    } else {
+      console.error(chalk.red.bold('Fallo al iniciar el servidor o la base de datos.'), error);
+    }
     process.exit(1);
   }
 }
