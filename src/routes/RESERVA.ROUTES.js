@@ -190,6 +190,61 @@ router.get(
  */
 router.get('/csv', authorize([ROLES.ADMIN]), descargarCSVReservas);
 
+
+
+/**
+ * @swagger
+ * /reservas/encuestas:
+ *   get:
+ *     summary: Listar todas las encuestas de satisfacción (solo admin/empleado)
+ *     description: Muestra todas las encuestas completadas por clientes, ordenadas por fecha.
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista completa de encuestas
+ *       404:
+ *         description: No hay encuestas registradas
+ */
+router.get('/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodasEncuestas);
+/**
+ * @swagger
+ * /reservas/comentarios:
+ *   get:
+ *     summary: Listar todos los comentarios de reservas (admin/empleado)
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista completa de comentarios
+ */
+router.get('/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodosComentarios);
+
+
+/**
+ * @swagger
+ * /reservas/{id}/encuestas:
+ *   get:
+ *     summary: Listar encuestas de una reserva específica (solo admin/empleado)
+ *     description: Muestra las encuestas asociadas a una reserva concreta.
+ *     tags: [Reservas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de encuestas de la reserva
+ *       404:
+ *         description: Reserva no encontrada
+ */
+router.get('/:id/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarEncuestas);
 /**
  * @swagger
  * /reservas/{id}/csv:
@@ -323,46 +378,6 @@ router.get('/:id/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarC
 
 /**
  * @swagger
- * /reservas/encuestas:
- *   get:
- *     summary: Listar todas las encuestas de satisfacción (solo admin/empleado)
- *     description: Muestra todas las encuestas completadas por clientes, ordenadas por fecha.
- *     tags: [Reservas]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista completa de encuestas
- *       404:
- *         description: No hay encuestas registradas
- */
-router.get('/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodasEncuestas);
-
-/**
- * @swagger
- * /reservas/{id}/encuestas:
- *   get:
- *     summary: Listar encuestas de una reserva específica (solo admin/empleado)
- *     description: Muestra las encuestas asociadas a una reserva concreta.
- *     tags: [Reservas]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Lista de encuestas de la reserva
- *       404:
- *         description: Reserva no encontrada
- */
-router.get('/:id/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarEncuestas);
-
-/**
- * @swagger
  * /reservas/{id}/encuestas:
  *   post:
  *     summary: Enviar encuesta de satisfacción (solo cliente dueño, después de la fecha)
@@ -399,19 +414,6 @@ router.get('/:id/encuestas', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarEnc
  */
 router.post('/:id/encuestas', authorize([ROLES.CLIENTE]), agregarEncuestaConNotificacion);
 
-/**
- * @swagger
- * /reservas/comentarios:
- *   get:
- *     summary: Listar todos los comentarios de reservas (admin/empleado)
- *     tags: [Reservas]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista completa de comentarios
- */
-router.get('/comentarios', authorize([ROLES.ADMIN, ROLES.EMPLEADO]), listarTodosComentarios);
 
 
 
